@@ -1,0 +1,600 @@
+<!--<!DOCTYPE html>-->
+<!--<html lang="en">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+<!--    <title>Inventory Admin Dashboard</title>-->
+<!--    &lt;!&ndash; Load Tailwind CSS &ndash;&gt;-->
+<!--    <script src="https://cdn.tailwindcss.com"></script>-->
+<!--    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">-->
+<!--    <style>-->
+<!--        body { font-family: 'Inter', sans-serif; }-->
+<!--        /* Simple scrollbar styling for the table container */-->
+<!--        .table-container::-webkit-scrollbar { height: 8px; }-->
+<!--        .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }-->
+<!--        .table-container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }-->
+
+<!--        .product-table th {-->
+<!--            @apply px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 bg-gray-50;-->
+<!--        }-->
+<!--        .product-table td {-->
+<!--            @apply px-4 py-3 whitespace-nowrap text-sm text-gray-800;-->
+<!--        }-->
+<!--    </style>-->
+<!--</head>-->
+<!--<body class="min-h-screen bg-gray-100 p-4 md:p-8">-->
+
+<!--&lt;!&ndash; Main Container &ndash;&gt;-->
+<!--<div class="max-w-6xl mx-auto">-->
+<!--    <header class="mb-8">-->
+<!--        <h1 class="text-3xl font-bold text-gray-900">Inventory Admin Dashboard</h1>-->
+<!--        <p class="text-gray-500">Manage products, stock levels, and pricing.</p>-->
+<!--    </header>-->
+
+<!--    &lt;!&ndash; Product Management Cards &ndash;&gt;-->
+<!--    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">-->
+
+<!--        &lt;!&ndash; Add Product Card &ndash;&gt;-->
+<!--        <div id="addProductCard" class="lg:col-span-1 bg-white p-6 rounded-xl shadow-lg h-fit">-->
+<!--            <h2 class="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">Add New Product</h2>-->
+<!--            <form id="addProductForm">-->
+<!--                &lt;!&ndash; Name &ndash;&gt;-->
+<!--                <div class="mb-4">-->
+<!--                    <label for="name" class="block text-sm font-medium text-gray-700">Name</label>-->
+<!--                    <input type="text" id="name" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">-->
+<!--                </div>-->
+<!--                &lt;!&ndash; Price &ndash;&gt;-->
+<!--                <div class="mb-4">-->
+<!--                    <label for="price" class="block text-sm font-medium text-gray-700">Price (Double)</label>-->
+<!--                    <input type="number" step="0.01" id="price" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">-->
+<!--                </div>-->
+<!--                &lt;!&ndash; Quantity & Min Required (Side by side on medium screens) &ndash;&gt;-->
+<!--                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">-->
+<!--                    <div>-->
+<!--                        <label for="quantity" class="block text-sm font-medium text-gray-700">Initial Quantity (Int)</label>-->
+<!--                        <input type="number" id="quantity" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">-->
+<!--                    </div>-->
+<!--                    <div>-->
+<!--                        <label for="min_required" class="block text-sm font-medium text-gray-700">Min Stock (Int)</label>-->
+<!--                        <input type="number" id="min_required" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">-->
+<!--                    </div>-->
+<!--                </div>-->
+
+<!--                <button type="submit" class="w-full py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">-->
+<!--                    Add Product-->
+<!--                </button>-->
+<!--            </form>-->
+<!--        </div>-->
+
+<!--        &lt;!&ndash; View Products Table &ndash;&gt;-->
+<!--        <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-lg">-->
+<!--            <h2 class="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">Product Inventory (Connected to API)</h2>-->
+
+<!--            <div class="table-container overflow-x-auto rounded-lg shadow-md border border-gray-200">-->
+<!--                <table class="min-w-full divide-y divide-gray-200 product-table">-->
+<!--                    <thead class="bg-gray-50">-->
+<!--                    <tr>-->
+<!--                        <th scope="col">ID</th>-->
+<!--                        <th scope="col">Name</th>-->
+<!--                        <th scope="col">Price</th>-->
+<!--                        <th scope="col">Qty</th>-->
+<!--                        <th scope="col">Min Stock</th>-->
+<!--                        <th scope="col">Active</th>-->
+<!--                        <th scope="col">Actions</th>-->
+<!--                    </tr>-->
+<!--                    </thead>-->
+<!--                    <tbody id="productTableBody" class="bg-white divide-y divide-gray-200">-->
+<!--                    &lt;!&ndash; Products will be injected here &ndash;&gt;-->
+<!--                    <tr><td colspan="7" class="text-center py-4 text-gray-500">Loading products...</td></tr>-->
+<!--                    </tbody>-->
+<!--                </table>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</div>-->
+
+<!--&lt;!&ndash; Toast Notification Container &ndash;&gt;-->
+<!--<div id="toastContainer" class="fixed bottom-4 right-4 space-y-2 z-50">-->
+<!--    &lt;!&ndash; Notifications will appear here &ndash;&gt;-->
+<!--</div>-->
+
+<!--<script>-->
+<!--    const API_BASE_URL = 'http://localhost:8080/api/admin/products';-->
+
+<!--    // -&#45;&#45; API COMMUNICATION FUNCTIONS -&#45;&#45;-->
+
+<!--    /** Fetches all products from the backend. (HTTP GET) */-->
+<!--    async function fetchProducts() {-->
+<!--        const tableBody = document.getElementById('productTableBody');-->
+<!--        tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-blue-500">Fetching data...</td></tr>';-->
+
+<!--        try {-->
+<!--            const response = await fetch(API_BASE_URL);-->
+
+<!--            if (response.ok) {-->
+<!--                const products = await response.json();-->
+<!--                renderProducts(products);-->
+<!--            } else {-->
+<!--                const errorText = await response.text();-->
+<!--                showToast(`Failed to load products. Server response: ${response.status} ${errorText.substring(0, 50)}...`, 'error');-->
+<!--                tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-red-500">Error loading products.</td></tr>';-->
+<!--            }-->
+<!--        } catch (error) {-->
+<!--            showToast('Network error: Could not connect to the Java backend.', 'error');-->
+<!--            tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-red-500">Connection refused. Is the Spring Boot application running?</td></tr>';-->
+<!--        }-->
+<!--    }-->
+
+<!--    /** Adds a new product to the backend. (HTTP POST) */-->
+<!--    async function addProduct(newProduct) {-->
+<!--        try {-->
+<!--            const response = await fetch(API_BASE_URL, {-->
+<!--                method: 'POST',-->
+<!--                headers: { 'Content-Type': 'application/json' },-->
+<!--                body: JSON.stringify(newProduct),-->
+<!--            });-->
+
+<!--            if (response.status === 201) { // 201 Created-->
+<!--                showToast('Product added successfully.', 'success');-->
+<!--                return true;-->
+<!--            } else {-->
+<!--                const errorText = await response.text();-->
+<!--                showToast(`Failed to add product: ${errorText.substring(0, 50)}...`, 'error');-->
+<!--                return false;-->
+<!--            }-->
+<!--        } catch (error) {-->
+<!--            showToast('Network error: Could not connect to API for adding product.', 'error');-->
+<!--            return false;-->
+<!--        }-->
+<!--    }-->
+
+<!--    /** Soft-deletes a product by ID. (HTTP DELETE) */-->
+<!--    async function deleteProduct(id) {-->
+<!--        try {-->
+<!--            const response = await fetch(`${API_BASE_URL}/${id}`, {-->
+<!--                method: 'DELETE',-->
+<!--            });-->
+
+<!--            if (response.status === 204) { // 204 No Content (Success, no body)-->
+<!--                showToast(`Product ID ${id} deleted (soft-deactivated).`, 'success');-->
+<!--                return true;-->
+<!--            } else if (response.status === 404) {-->
+<!--                 showToast(`Product ID ${id} not found.`, 'error');-->
+<!--                 return false;-->
+<!--            } else {-->
+<!--                const errorText = await response.text();-->
+<!--                showToast(`Failed to delete product. Server error: ${errorText.substring(0, 50)}...`, 'error');-->
+<!--                return false;-->
+<!--            }-->
+<!--        } catch (error) {-->
+<!--            showToast('Network error: Could not connect to API for deleting product.', 'error');-->
+<!--            return false;-->
+<!--        }-->
+<!--    }-->
+
+<!--    // -&#45;&#45; UI LOGIC -&#45;&#45;-->
+
+<!--    document.addEventListener('DOMContentLoaded', () => {-->
+<!--        fetchProducts(); // Initial load-->
+<!--        document.getElementById('addProductForm').addEventListener('submit', handleAddProduct);-->
+<!--        document.getElementById('productTableBody').addEventListener('click', handleDeleteClick);-->
+<!--    });-->
+
+<!--    /** Renders the products into the HTML table. */-->
+<!--    function renderProducts(products) {-->
+<!--        const tableBody = document.getElementById('productTableBody');-->
+
+<!--        if (products.length === 0) {-->
+<!--            tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-gray-500">No products found.</td></tr>';-->
+<!--            return;-->
+<!--        }-->
+
+<!--        tableBody.innerHTML = products.map(product => {-->
+<!--            const lowStock = product.quantity < product.minRequired;-->
+<!--            const rowClass = lowStock ? 'bg-red-50 hover:bg-red-100' : 'hover:bg-gray-50';-->
+<!--            const qtyClass = lowStock ? 'text-red-600 font-semibold' : '';-->
+
+<!--            return `-->
+<!--                <tr class="${rowClass} transition duration-100">-->
+<!--                    <td>${product.id}</td>-->
+<!--                    <td>${product.name}</td>-->
+<!--                    <td>$${product.price.toFixed(2)}</td>-->
+<!--                    <td class="${qtyClass}">${product.quantity}</td>-->
+<!--                    <td>${product.minRequired}</td>-->
+<!--                    <td>${product.active ? 'Yes' : 'No'}</td>-->
+<!--                    <td>-->
+<!--                        <button data-id="${product.id}" class="delete-btn text-red-600 hover:text-red-900 font-medium transition duration-150"-->
+<!--                                ${!product.active ? 'disabled title="Product is already inactive"' : ''}>-->
+<!--                            ${product.active ? 'Deactivate' : 'Inactive'}-->
+<!--                        </button>-->
+<!--                    </td>-->
+<!--                </tr>-->
+<!--            `;-->
+<!--        }).join('');-->
+<!--    }-->
+
+<!--    /** Handles form submission for adding a product. */-->
+<!--    async function handleAddProduct(event) {-->
+<!--        event.preventDefault();-->
+<!--        const form = event.target;-->
+
+<!--        const newProduct = {-->
+<!--            name: form.name.value.trim(),-->
+<!--            price: parseFloat(form.price.value),-->
+<!--            quantity: parseInt(form.quantity.value),-->
+<!--            // Note: The DTO uses minRequired (camelCase)-->
+<!--            minRequired: parseInt(form.min_required.value)-->
+<!--        };-->
+
+<!--        // Basic Validation-->
+<!--        if (newProduct.name === '' || isNaN(newProduct.price) || newProduct.price <= 0 || isNaN(newProduct.quantity) || newProduct.quantity < 0 || isNaN(newProduct.minRequired) || newProduct.minRequired < 0) {-->
+<!--            showToast('Please fill out all fields with valid, positive numbers.', 'error');-->
+<!--            return;-->
+<!--        }-->
+
+<!--        const success = await addProduct(newProduct);-->
+<!--        if (success) {-->
+<!--            form.reset();-->
+<!--            fetchProducts(); // Refresh the table-->
+<!--        }-->
+<!--    }-->
+
+<!--    /** Handles click on the Deactivate button. */-->
+<!--    async function handleDeleteClick(event) {-->
+<!--        if (event.target.classList.contains('delete-btn')) {-->
+<!--            const productId = parseInt(event.target.dataset.id);-->
+
+<!--            // Use soft-delete/deactivate confirmation-->
+<!--            if (confirm(`Are you sure you want to deactivate (soft-delete) Product ID ${productId}? This cannot be undone from the UI.`)) {-->
+<!--                const success = await deleteProduct(productId);-->
+<!--                if (success) {-->
+<!--                    fetchProducts(); // Refresh the table-->
+<!--                }-->
+<!--            }-->
+<!--        }-->
+<!--    }-->
+
+<!--    // -&#45;&#45; TOAST NOTIFICATION FUNCTION (Replaces console alerts) -&#45;&#45;-->
+<!--    function showToast(message, type = 'info') {-->
+<!--        const toastContainer = document.getElementById('toastContainer');-->
+<!--        const colorMap = {-->
+<!--            'success': 'bg-green-500',-->
+<!--            'error': 'bg-red-500',-->
+<!--            'info': 'bg-blue-500'-->
+<!--        };-->
+
+<!--        const toast = document.createElement('div');-->
+<!--        toast.className = `${colorMap[type]} text-white px-4 py-2 rounded-lg shadow-xl transition-opacity duration-300 opacity-0`;-->
+<!--        toast.textContent = message;-->
+
+<!--        toastContainer.appendChild(toast);-->
+
+<!--        // Trigger fade-in-->
+<!--        setTimeout(() => toast.classList.remove('opacity-0'), 10);-->
+
+<!--        // Trigger fade-out and removal-->
+<!--        setTimeout(() => {-->
+<!--            toast.classList.add('opacity-0');-->
+<!--            toast.addEventListener('transitionend', () => toast.remove());-->
+<!--        }, 3000); // 3 seconds display time-->
+<!--    }-->
+
+<!--    // Custom replacement for window.confirm()-->
+<!--    function confirm(message) {-->
+<!--        return window.confirm(message);-->
+<!--    }-->
+
+<!--</script>-->
+<!--</body>-->
+<!--</html>-->
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Admin Dashboard</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        /* Simple scrollbar styling for the table container */
+        .table-container::-webkit-scrollbar { height: 8px; }
+        .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .table-container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        .product-table th {
+            padding-left: 1rem;
+            padding-right: 1rem;
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+            text-align: left;
+            font-size: 0.75rem; /* text-xs */
+            font-weight: 600; /* font-semibold */
+            text-transform: uppercase;
+            letter-spacing: 0.05em; /* tracking-wider */
+            color: #6b7280; /* text-gray-500 */
+            background-color: #f9fafb; /* bg-gray-50 */
+        }
+        .product-table td {
+            padding-left: 1rem;
+            padding-right: 1rem;
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+            white-space: nowrap;
+            font-size: 0.875rem; /* text-sm */
+            color: #374151; /* text-gray-800 */
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-100 p-4 md:p-8">
+
+<div class="max-w-6xl mx-auto">
+    <header class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">Inventory Admin Dashboard</h1>
+        <p class="text-gray-500">Manage products, stock levels, and pricing.</p>
+    </header>
+
+    <!-- Product Management Cards -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+
+        <!-- Add Product Card -->
+        <div id="addProductCard" class="lg:col-span-1 bg-white p-6 rounded-xl shadow-lg h-fit">
+            <h2 class="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">Add New Product</h2>
+            <form id="addProductForm">
+                <!-- Name -->
+                <div class="mb-4">
+                    <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
+                    <input type="text" id="name" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
+                </div>
+                <!-- Price -->
+                <div class="mb-4">
+                    <label for="price" class="block text-sm font-medium text-gray-700">Price (Double)</label>
+                    <input type="number" step="0.01" id="price" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
+                </div>
+                <!-- Quantity & Min Required (Side by side on medium screens) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label for="quantity" class="block text-sm font-medium text-gray-700">Initial Quantity (Int)</label>
+                        <input type="number" id="quantity" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
+                    </div>
+                    <div>
+                        <label for="minRequired" class="block text-sm font-medium text-gray-700">Min Stock (Int)</label>
+                        <input type="number" id="minRequired" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">
+                    Add Product
+                </button>
+            </form>
+        </div>
+
+        <!-- View Products Table -->
+        <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-lg">
+            <h2 class="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">Product Inventory</h2>
+
+            <div class="table-container overflow-x-auto rounded-lg shadow-md border border-gray-200">
+                <table class="min-w-full divide-y divide-gray-200 product-table">
+                    <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Price</th>
+                        <th scope="col">Qty</th>
+                        <th scope="col">Min Stock</th>
+                        <th scope="col">Active</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody id="productTableBody" class="bg-white divide-y divide-gray-200">
+                    <!-- Products will be injected here -->
+                    <tr><td colspan="7" class="text-center py-4 text-gray-500">Loading products...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Notification Container -->
+<div id="toastContainer" class="fixed bottom-4 right-4 space-y-2 z-50">
+    <!-- Notifications will appear here -->
+</div>
+<script>
+    const API_BASE_URL = 'http://localhost:8080/api/admin/products';
+
+    // --- API COMMUNICATION FUNCTIONS ---
+
+    /** Fetches all products from the backend. */
+    async function fetchProducts() {
+        try {
+            const response = await fetch(API_BASE_URL);
+
+            if (!response.ok) {
+                // Handle non-200 status codes (e.g., 404, 500)
+                const errorBody = await response.json().catch(() => ({ message: response.statusText }));
+                throw new Error(`Failed to fetch products: ${errorBody.message || response.status}`);
+            }
+
+            const data = await response.json();
+            renderProducts(data);
+        } catch (error) {
+            showToast(`Error fetching products. Ensure API is running. (${error.message})`, 'error');
+            const tableBody = document.getElementById('productTableBody');
+            tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-red-500">API Connection Error. Check console.</td></tr>';
+            console.error(error);
+        }
+    }
+
+    /** Adds a product to the backend via POST request. */
+    async function addProduct(newProduct) {
+        try {
+            const response = await fetch(API_BASE_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newProduct),
+            });
+
+            if (response.status === 201) { // 201 Created is expected for a successful POST
+                const product = await response.json();
+                showToast(`Product added: ${product.name}`, 'success');
+                return { success: true };
+            } else {
+                const errorBody = await response.json().catch(() => ({ message: response.statusText }));
+                throw new Error(errorBody.message || `Failed with status: ${response.status}`);
+            }
+        } catch (error) {
+            showToast(`Failed to add product: ${error.message}`, 'error');
+            console.error('Add Product API Error:', error);
+            return { success: false };
+        }
+    }
+
+    /** Performs a soft-deactivate (is_active = FALSE) on a product via DELETE request. */
+    async function deactivateProduct(id) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/${id}`, {
+                method: 'DELETE',
+            });
+
+            if (response.status === 204) { // 204 No Content is expected for a successful DELETE
+                showToast(`Product ID ${id} deactivated.`, 'success');
+                return { success: true };
+            } else {
+                const errorBody = await response.json().catch(() => ({ message: response.statusText }));
+                throw new Error(errorBody.message || `Failed with status: ${response.status}`);
+            }
+        } catch (error) {
+            showToast(`Failed to deactivate product: ${error.message}`, 'error');
+            console.error('Deactivate Product API Error:', error);
+            return { success: false };
+        }
+    }
+
+
+    // --- UI LOGIC ---
+
+    document.addEventListener('DOMContentLoaded', () => {
+        fetchProducts();
+        document.getElementById('addProductForm').addEventListener('submit', handleAddProduct);
+        document.getElementById('productTableBody').addEventListener('click', handleDeactivateClick);
+    });
+
+    function renderProducts(products) {
+        const tableBody = document.getElementById('productTableBody');
+
+        if (products.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-gray-500">No products found.</td></tr>';
+            return;
+        }
+
+        tableBody.innerHTML = products.map(product => {
+            const isLowStock = product.quantity < product.minRequired;
+            const rowClass = isLowStock ? 'bg-red-50 hover:bg-red-100' : 'hover:bg-gray-50';
+            const qtyClass = isLowStock ? 'text-red-600 font-semibold' : '';
+
+            return `
+                <tr class="${rowClass} transition duration-100">
+                    <td>${product.id}</td>
+                    <td>${product.name}</td>
+                    <td>$${product.price.toFixed(2)}</td>
+                    <td class="${qtyClass}">${product.quantity}</td>
+                    <td>${product.minRequired}</td>
+                    <td>${product.isActive ? 'Yes' : 'No'}</td>
+                    <td>
+                        <button data-id="${product.id}"
+                                class="deactivate-btn text-orange-600 hover:text-orange-900 font-medium transition duration-150"
+                                ${!product.isActive ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}>
+                            Deactivate
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    async function handleAddProduct(event) {
+        event.preventDefault();
+        const form = event.target;
+
+        // Note: Field IDs match the DTO property names (e.g., minRequired)
+        const newProduct = {
+            name: form.name.value.trim(),
+            price: parseFloat(form.price.value),
+            quantity: parseInt(form.quantity.value),
+            minRequired: parseInt(form.minRequired.value)
+        };
+
+        // Basic Validation
+        if (newProduct.name === '' || isNaN(newProduct.price) || isNaN(newProduct.quantity) || isNaN(newProduct.minRequired)) {
+            showToast('Please fill out all fields with valid numbers.', 'error');
+            return;
+        }
+
+        const result = await addProduct(newProduct);
+
+        if (result.success) {
+            form.reset();
+            fetchProducts(); // Refresh the table
+        }
+    }
+
+    async function handleDeactivateClick(event) {
+        if (event.target.classList.contains('deactivate-btn')) {
+            const productId = parseInt(event.target.dataset.id);
+
+            // CHANGED: Using new function name to avoid recursion error
+            if (showConfirmationDialog(`Are you sure you want to DEACTIVATE Product ID ${productId}? Stock will remain but it will be hidden from new bills.`)) {
+
+                const result = await deactivateProduct(productId);
+
+                if (result.success) {
+                    fetchProducts(); // Refresh the table
+                }
+            }
+        }
+    }
+
+    // --- UTILITIES ---
+
+    // CHANGED: Renamed function to avoid conflict with native window.confirm()
+    function showConfirmationDialog(message) {
+        // In a production environment, you would replace this with a custom modal UI component.
+        return window.confirm(message);
+    }
+
+    // TOAST NOTIFICATION FUNCTION (Replaces console alerts)
+    function showToast(message, type = 'info') {
+        const toastContainer = document.getElementById('toastContainer');
+        const colorMap = {
+            'success': 'bg-green-500',
+            'error': 'bg-red-500',
+            'info': 'bg-blue-500'
+        };
+
+        const toast = document.createElement('div');
+        toast.className = `${colorMap[type]} text-white px-4 py-2 rounded-lg shadow-xl transition-opacity duration-300 opacity-0`;
+        toast.textContent = message;
+
+        toastContainer.appendChild(toast);
+
+        // Trigger fade-in
+        setTimeout(() => toast.classList.remove('opacity-0'), 10);
+
+        // Trigger fade-out and removal
+        setTimeout(() => {
+            toast.classList.add('opacity-0');
+            toast.addEventListener('transitionend', () => toast.remove());
+        }, 3000); // 3 seconds display time
+    }
+</script>
+</body>
+</html>
+
+

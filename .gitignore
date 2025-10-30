@@ -1,0 +1,69 @@
+
+/target/
+# IntelliJ idea files
+.idea/
+# Maven wrapper files
+.mvn/wrapper/
+# Log files
+*.log
+# Compiled class files
+*.class
+# Package Files
+*.jar
+*.war
+# Database files (optional, but recommended not to store secrets)
+# If your DB files contain sensitive data, do not commit them.
+*.db
+# Environment variables/secrets
+*.properties
+# You may remove *.properties from this list if you want to commit application.properties
+```
+
+
+Step 3: Create the GitHub Repository
+
+You need a place online for your code to live.
+
+Go to GitHub and log in.
+
+Click the + sign in the upper right corner and select "New repository."
+
+Repository Name: Choose a name (e.g., Inventory-Management-System).
+
+Visibility: Choose Public or Private.
+
+DO NOT check the box to initialize with a README, license, or .gitignore (you already created the .gitignore locally).
+
+Click "Create repository."
+
+Step 4: Add and Commit Local Files
+
+Now, tell Git to start tracking your project files.
+
+Stage all files (using the .gitignore created above to filter out unnecessary files):
+
+git add .
+
+
+Commit the staged files with an initial message:
+
+git commit -m "Initial commit of Spring Boot Inventory System"
+
+
+Step 5: Push to GitHub
+
+Connect your local repository to the new empty one you created online.
+
+Connect your local repository to the remote GitHub repository. On the page you just created in Step 3, GitHub will provide these two lines under the section "…or push an existing local repository from the command line."
+
+(Use the URL provided by GitHub. It will look like this, but with your username/repo name):
+
+git branch -M main
+git remote add origin git@github.com:YOUR_USERNAME/Inventory-Management-System.git
+
+
+(Note: If you are using HTTPS instead of SSH, the URL will start with https://)
+
+Push the code to the main branch:
+
+git push -u origin main
