@@ -42,10 +42,15 @@ public class CashierController {
             BillDto completedBill = cashierService.processSale(billDto);
             // Returns 201 Created status
             return new ResponseEntity<>(completedBill, HttpStatus.CREATED);
-        } catch (RuntimeException e) {
-            // Catches validation errors (like insufficient stock) and returns 400 Bad Request
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            // CRITICAL FIX: Catches validation errors (like insufficient stock) and returns 400 Bad Request,
+            // with the error message in the body so the frontend can display it.
             System.err.println("Sale processing failed: " + e.getMessage());
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        } catch (RuntimeException e) {
+            // Catches general database errors
+            System.err.println("Sale processing failed due to unexpected error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 

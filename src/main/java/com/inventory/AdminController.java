@@ -1,82 +1,71 @@
 package com.inventory;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/**
- * REST Controller for managing product inventory (Admin tasks).
- * Handles HTTP requests from the frontend and delegates business logic to AdminService.
- */
-@RestController // Marks this class as a Spring component that handles REST requests
-@RequestMapping("/api/admin/products") // Base URL for all endpoints in this controller
-@CrossOrigin(origins = "http://localhost:8080") // Allows the frontend (running locally on port 8080) to access this API
+@RestController
+@RequestMapping("/api/admin/products")
+@RequiredArgsConstructor
 public class AdminController {
 
     private final AdminService adminService;
 
-    // Dependency Injection: Spring automatically provides the AdminService instance
-    @Autowired
-    public AdminController(AdminService adminService) {
-        this.adminService = adminService;
-    }
-
     /**
-     * Endpoint to retrieve all products.
-     * Mapped to: GET /api/admin/products
-     * @return A list of products (sent as JSON to the frontend).
+     * Maps to: GET /api/admin/products
      */
     @GetMapping
     public ResponseEntity<List<ProductDto>> getAllProducts() {
-        try {
-            List<ProductDto> products = adminService.getAllProducts();
-            return new ResponseEntity<>(products, HttpStatus.OK);
-        } catch (RuntimeException e) {
-            // Catches exceptions thrown by the AdminService (e.g., database connection issues)
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        // Calls the service method that filters for active products
+        List<ProductDto> products = adminService.getAllProducts();
+        return ResponseEntity.ok(products);
     }
 
     /**
-     * Endpoint to add a new product.
-     * Mapped to: POST /api/admin/products
-     * Request body (JSON) is automatically converted to ProductDto by Spring.
-     * @param productDto The product data received from the request body.
-     * @return The created ProductDto with the new ID.
+     * Maps to: POST /api/admin/products
      */
     @PostMapping
     public ResponseEntity<ProductDto> addProduct(@RequestBody ProductDto productDto) {
+        ProductDto newProduct = adminService.addProduct(productDto);
+        return new ResponseEntity<>(newProduct, HttpStatus.CREATED);
+    }
+
+    /**
+     * Endpoint to restock a product.
+     * Maps to: PUT /api/admin/products/restock/{productId}
+     * * NOTE: We rely on the frontend to pass an Integer representing the restock quantity.
+     */
+    @PutMapping("/restock/{productId}")
+    public ResponseEntity<Void> restockProduct(@PathVariable int productId, @RequestBody Integer quantityToAdd) {
+        if (quantityToAdd == null || quantityToAdd <= 0) {
+            return ResponseEntity.badRequest().build();
+        }
         try {
-            ProductDto createdProduct = adminService.addProduct(productDto);
-            // Returns 201 Created status code
-            return new ResponseEntity<>(createdProduct, HttpStatus.CREATED);
+            adminService.updateQuantity(productId, quantityToAdd);
+            return ResponseEntity.ok().build(); // 200 OK
         } catch (RuntimeException e) {
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+            // Catches "Product ID not found" from service
+            System.err.println("Restock failed: " + e.getMessage());
+            return ResponseEntity.notFound().build(); // 404 Not Found
         }
     }
 
     /**
-     * Endpoint to delete (soft-delete) a product by ID.
-     * Mapped to: DELETE /api/admin/products/{id}
-     * @param id The ID of the product to delete, extracted from the URL path.
-     * @return A 204 No Content status on success, or 404/500 on failure.
+     * Endpoint to deactivate (soft delete) a product.
+     * Maps to: DELETE /api/admin/products/{id}
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProduct(@PathVariable int id) {
         try {
             adminService.deleteProduct(id);
-            // Returns 204 No Content, meaning the action was successful and there's no body to return.
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            return ResponseEntity.noContent().build(); // 204 No Content
         } catch (RuntimeException e) {
-            // If deleteProduct throws an exception (e.g., product not found or DB error)
-            // We can check the message, but for simplicity, we return a general error.
-            if (e.getMessage().contains("not found")) {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            }
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            // Catches "Product ID not found" from service
+            System.err.println("Deactivation failed: " + e.getMessage());
+            return ResponseEntity.notFound().build(); // 404 Not Found
         }
     }
 }
