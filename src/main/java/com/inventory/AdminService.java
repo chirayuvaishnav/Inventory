@@ -10,15 +10,19 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Service class for handling all administrative product-related business logic.
+ */
 @Service
 @RequiredArgsConstructor
 public class AdminService {
 
     /**
-     * Retrieves all ACTIVE products from the database.
+     * Retrieves all ACTIVE products from the database and maps them to DTOs.
      */
     public List<ProductDto> getAllProducts() {
         List<ProductDto> products = new ArrayList<>();
+        // Only select active products for the dashboard view
         String sql = "SELECT id, name, price, quantity, min_required, is_active FROM products WHERE is_active = TRUE ORDER BY id ASC";
 
         try (Connection conn = DBConnection.getConnection();
@@ -82,6 +86,7 @@ public class AdminService {
             int affectedRows = stmt.executeUpdate();
 
             if (affectedRows == 0) {
+                // If the product was not found (and thus not updated)
                 throw new RuntimeException("Product ID " + id + " not found or already inactive.");
             }
         } catch (SQLException e) {
@@ -94,6 +99,7 @@ public class AdminService {
      * Updates the quantity of a product by adding the specified restock amount.
      */
     public void updateQuantity(int productId, int quantityToAdd) {
+        // SQL adds the quantityToAdd to the existing quantity
         String sql = "UPDATE products SET quantity = quantity + ? WHERE id = ?";
 
         try (Connection conn = DBConnection.getConnection();
@@ -105,6 +111,7 @@ public class AdminService {
             int affectedRows = stmt.executeUpdate();
 
             if (affectedRows == 0) {
+                // If the product doesn't exist, throw a 404-like error
                 throw new RuntimeException("Product ID " + productId + " not found.");
             }
         } catch (SQLException e) {
