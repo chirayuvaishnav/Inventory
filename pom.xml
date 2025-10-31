@@ -43,10 +43,16 @@
 
   <dependencies>
     <!-- Keep your existing JDBC/MySQL dependency -->
+<!--    <dependency>-->
+<!--      <groupId>com.mysql</groupId>-->
+<!--      <artifactId>mysql-connector-j</artifactId>-->
+<!--      &lt;!&ndash; REMOVED <version>9.4.0</version> - Let Spring Boot manage the version for better compatibility &ndash;&gt;-->
+<!--    </dependency>-->
+
     <dependency>
-      <groupId>com.mysql</groupId>
-      <artifactId>mysql-connector-j</artifactId>
-      <!-- REMOVED <version>9.4.0</version> - Let Spring Boot manage the version for better compatibility -->
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <scope>runtime</scope>
     </dependency>
 
     <!-- 2. SPRING BOOT WEB: For building RESTful APIs and running an embedded Tomcat server -->
