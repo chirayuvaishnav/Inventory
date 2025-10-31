@@ -15,7 +15,7 @@
 # If your DB files contain sensitive data, do not commit them.
 *.db
 # Environment variables/secrets
-*.properties
+
 # You may remove *.properties from this list if you want to commit application.properties
 ```
 
