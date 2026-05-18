@@ -1,4 +1,4 @@
-package com.inventory;
+package com.inventory.model;
 
 public class User {
     private int id;

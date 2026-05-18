@@ -1,5 +1,8 @@
-package com.inventory;
+package com.inventory.controller;
 
+import com.inventory.dto.BillDto;
+import com.inventory.service.CashierService;
+import com.inventory.dto.ProductDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

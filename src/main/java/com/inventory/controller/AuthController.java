@@ -1,5 +1,7 @@
-package com.inventory;
+package com.inventory.controller;
 
+import com.inventory.service.AuthService;
+import com.inventory.dto.UserDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

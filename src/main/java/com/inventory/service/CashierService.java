@@ -1,5 +1,9 @@
-package com.inventory;
+package com.inventory.service;
 
+import com.inventory.dto.BillDto;
+import com.inventory.dto.BillItemDto;
+import com.inventory.model.DBConnection;
+import com.inventory.dto.ProductDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

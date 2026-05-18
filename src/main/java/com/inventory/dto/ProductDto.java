@@ -18,7 +18,7 @@
 
 
 
-package com.inventory;
+package com.inventory.dto;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

@@ -1,5 +1,7 @@
-package com.inventory;
+package com.inventory.service;
 
+import com.inventory.model.DBConnection;
+import com.inventory.dto.ProductDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.sql.Connection;
@@ -74,9 +76,6 @@ public class AdminService {
         return productDto;
     }
 
-    /**
-     * Performs a SOFT DELETE (deactivates) a product by setting is_active = FALSE.
-     */
     public void deleteProduct(int id) {
         String sql = "UPDATE products SET is_active = FALSE WHERE id = ?";
 
@@ -94,10 +93,6 @@ public class AdminService {
             throw new RuntimeException("Failed to deactivate product due to a database issue.", e);
         }
     }
-
-    /**
-     * Updates the quantity of a product by adding the specified restock amount.
-     */
     public void updateQuantity(int productId, int quantityToAdd) {
         // SQL adds the quantityToAdd to the existing quantity
         String sql = "UPDATE products SET quantity = quantity + ? WHERE id = ?";
