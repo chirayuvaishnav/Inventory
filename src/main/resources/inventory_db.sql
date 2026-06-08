@@ -13,7 +13,8 @@ CREATE TABLE IF NOT EXISTS products (
     name VARCHAR(100) NOT NULL,
     price DOUBLE NOT NULL,
     quantity INT NOT NULL,
-    min_required INT NOT NULL
+    min_required INT NOT NULL,
+    is_active TINYINT(1) NOT NULL DEFAULT 1
 );
 
 CREATE TABLE IF NOT EXISTS bills (
