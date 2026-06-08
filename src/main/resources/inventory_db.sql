@@ -26,6 +26,16 @@ CREATE TABLE IF NOT EXISTS bills (
     FOREIGN KEY (product_id) REFERENCES products(id)
 );
 
+CREATE TABLE IF NOT EXISTS bill_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    bill_id INT,
+    product_id INT,
+    quantity INT,
+    price DOUBLE NOT NULL,
+    FOREIGN KEY (bill_id) REFERENCES bills(id),
+    FOREIGN KEY (product_id) REFERENCES products(id)
+);
+
 INSERT INTO users (username, password, role) VALUES 
 ('admin', 'admin123', 'admin'),
 ('cashier1', 'cash123', 'cashier');
