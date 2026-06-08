@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS bill_items (
     product_id INT,
     quantity INT,
     price DOUBLE NOT NULL,
+    subtotal DOUBLE NOT NULL,
     FOREIGN KEY (bill_id) REFERENCES bills(id),
     FOREIGN KEY (product_id) REFERENCES products(id)
 );
