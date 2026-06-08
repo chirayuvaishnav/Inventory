@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS bills (
     id INT AUTO_INCREMENT PRIMARY KEY,
     product_id INT,
     quantity INT,
+    total_amount DOUBLE NOT NULL,
     timestamp DATETIME,
     FOREIGN KEY (product_id) REFERENCES products(id)
 );
