@@ -84,47 +84,49 @@ package com.inventory.controller;
 
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.CacheControl;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * REST Controller responsible for serving the main static HTML file.
- * Now serves 'login.html' as the application's entry point.
+ * REST Controller responsible for serving static HTML files with aggressive cache-busting headers.
  */
-@RestController // Use RestController to handle requests directly
+@RestController
 public class WebController {
 
-    /**
-     * Maps the root URL ("/") and serves the login.html file.
-     * Searches for login.html in the classpath.
-     * @return The login.html file as a resource.
-     */
-    @GetMapping("/")
-    public ResponseEntity<Resource> serveIndexHtml() {
+    @GetMapping({"/", "/login", "/login.html"})
+    public ResponseEntity<Resource> serveLoginHtml() {
+        return serveStaticFile("static/login.html");
+    }
+
+    @GetMapping({"/admin", "/index.html", "/index"})
+    public ResponseEntity<Resource> serveAdminHtml() {
+        return serveStaticFile("static/index.html");
+    }
+
+    @GetMapping({"/cashier", "/cashier.html"})
+    public ResponseEntity<Resource> serveCashierHtml() {
+        return serveStaticFile("static/cashier.html");
+    }
+
+    private ResponseEntity<Resource> serveStaticFile(String path) {
         try {
-            // Updated to look for 'login.html'
-            Resource resource = new ClassPathResource("login.html");
-
-            // If not found in the root of resources, try the common 'static/' subfolder
-            if (!resource.exists()) {
-                resource = new ClassPathResource("static/login.html");
-            }
-
-            // If the file is still not found, return a 404
+            Resource resource = new ClassPathResource(path);
             if (!resource.exists() || !resource.isReadable()) {
                 return ResponseEntity.notFound().build();
             }
-
-            // Return the file content with the correct MIME type (text/html)
             return ResponseEntity.ok()
+                    .cacheControl(CacheControl.noCache().noStore().mustRevalidate())
+                    .header(HttpHeaders.PRAGMA, "no-cache")
+                    .header(HttpHeaders.EXPIRES, "0")
                     .contentType(MediaType.TEXT_HTML)
                     .body(resource);
-
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }
     }
 }
+

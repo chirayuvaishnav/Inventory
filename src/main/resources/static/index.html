@@ -3,487 +3,1349 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventory Admin Dashboard</title>
-    <!-- Load Tailwind CSS -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>StockMaster IMS - Enterprise Admin</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            200: '#c7d2fe',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            800: '#3730a3',
+                            900: '#312e81',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
         body { font-family: 'Inter', sans-serif; }
-        /* Simple scrollbar styling for the table container */
-        .table-container::-webkit-scrollbar { height: 8px; }
-        .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .table-container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-        .product-table th {
-            @apply px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 bg-gray-50;
-        }
-        .product-table td {
-            @apply px-4 py-3 whitespace-nowrap text-sm text-gray-800;
-        }
-        /* Modal Styles */
-        .modal {
-            transition: opacity 0.25s ease;
-        }
-        .modal-content {
-            transition: transform 0.25s ease;
-        }
-        /* Notification Drawer Styles */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f8fafc; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         #notificationDrawer {
-            top: 60px;
-            right: 0;
-            width: 350px;
-            max-height: 80vh;
-            overflow-y: auto;
             transform: translateX(100%);
-            transition: transform 0.3s ease-out;
+            transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
         }
         #notificationDrawer.open {
             transform: translateX(0);
         }
     </style>
 </head>
-<body class="min-h-screen bg-gray-100">
+<body class="bg-slate-50 min-h-screen text-slate-800 flex flex-col antialiased selection:bg-brand-500 selection:text-white">
 
-<!-- Navigation Bar -->
-<nav class="bg-white shadow-md p-4 sticky top-0 z-20">
-    <div class="max-w-7xl mx-auto flex justify-between items-center">
-        <span class="text-xl font-bold text-indigo-700">IMS Admin</span>
-
-        <div class="flex items-center space-x-4">
-            <!-- RESTORED: Notification Button -->
-            <div class="relative">
-                <button onclick="toggleNotifications()" class="p-2 rounded-full text-gray-500 hover:bg-gray-100 hover:text-indigo-600 transition duration-150">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.447 6.315 6 8.188 6 11v3.159c0 .538-.214 1.055-.595 1.405L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                    <!-- Badge Counter -->
-                    <span id="notificationBadge" class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">
-                        0
+<!-- TOP HEADER -->
+<header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+        
+        <!-- Logo & Title -->
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 via-indigo-600 to-indigo-500 flex items-center justify-center text-white shadow-md shadow-brand-500/25">
+                <i class="fa-solid fa-boxes-stacked text-lg"></i>
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="font-black text-slate-900 tracking-tight text-lg">StockMaster IMS</span>
+                    <span class="px-2.5 py-0.5 text-[11px] font-extrabold uppercase tracking-wider rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">
+                        Admin
                     </span>
-                </button>
+                </div>
+                <p class="text-[11px] text-slate-400 font-medium hidden sm:block">Enterprise Warehouse &amp; Demand Intelligence</p>
+            </div>
+        </div>
+
+        <!-- Navigation & Actions -->
+        <div class="flex items-center gap-3 sm:gap-4">
+            
+            <!-- Low-Stock Alerts Bell -->
+            <button onclick="toggleNotifications()" id="notificationBtn" class="relative p-2.5 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition focus:outline-none" title="Low Stock Warnings">
+                <i class="fa-regular fa-bell text-lg"></i>
+                <span id="notificationBadge" class="hidden absolute top-1.5 right-1.5 min-w-[18px] h-[18px] flex items-center justify-center px-1 text-[10px] font-bold text-white bg-rose-500 rounded-full ring-2 ring-white animate-pulse">
+                    0
+                </span>
+            </button>
+
+            <!-- Divider -->
+            <div class="h-6 w-px bg-slate-200 hidden sm:block"></div>
+
+            <!-- Role Badge / Admin Profile Info -->
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-brand-500 to-indigo-600 flex items-center justify-center text-white font-bold text-xs shadow-xs">
+                    AD
+                </div>
+                <div class="hidden md:block text-left">
+                    <p class="text-xs font-bold text-slate-800 leading-none">Warehouse Admin</p>
+                    <p class="text-[10px] text-emerald-600 font-semibold flex items-center gap-1 mt-0.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span> Active
+                    </p>
+                </div>
             </div>
 
-            <!-- Log Out Button -->
-            <button onclick="logout()" class="flex items-center space-x-1 text-sm font-medium text-red-600 hover:text-red-800 transition duration-150">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3v-4a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                <span>Log Out</span>
+            <!-- Logout Button -->
+            <button onclick="logout()" class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition cursor-pointer" title="Sign out of Admin Portal">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                <span class="hidden sm:inline">Logout</span>
             </button>
         </div>
     </div>
-</nav>
+</header>
 
-<!-- RESTORED: Notification Drawer -->
-<div id="notificationDrawer" class="fixed bg-white shadow-2xl z-40 p-5 border-l border-gray-200">
-    <h3 class="text-lg font-bold text-gray-800 mb-3 border-b pb-2">Low Stock Alerts (<span id="alertCount">0</span>)</h3>
-    <div id="notificationList" class="space-y-4">
-        <!-- Notification items are inserted here by JS -->
-    </div>
-    <p id="noAlertsMsg" class="text-gray-500 text-sm mt-4 hidden">No low stock alerts right now. Inventory looks good!</p>
-</div>
+<!-- MAIN DASHBOARD CONTENT -->
+<main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-<!-- Main Content Container -->
-<div class="max-w-6xl mx-auto p-4 md:p-8">
-    <header class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900">Inventory Admin Dashboard</h1>
-        <p class="text-gray-500">Manage products, stock levels, and pricing.</p>
-    </header>
-
-    <!-- Product Management Cards -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-
-        <!-- Add Product Card -->
-        <div id="addProductCard" class="lg:col-span-1 bg-white p-6 rounded-xl shadow-lg h-fit">
-            <h2 class="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">Add New Product</h2>
-            <form id="addProductForm">
-                <!-- Name -->
-                <div class="mb-4">
-                    <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
-                    <input type="text" id="name" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
+    <!-- 4 OVERVIEW SUMMARY CARDS -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+        
+        <!-- Card 1: Total Catalog Items -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs hover:shadow-md transition">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Catalog Items</p>
+                    <h3 id="cardTotalProducts" class="text-2xl font-black text-slate-900 mt-1">--</h3>
+                    <p class="text-[11px] text-slate-400 mt-1 flex items-center gap-1">
+                        <i class="fa-solid fa-cubes text-slate-400"></i> Active SKU catalog
+                    </p>
                 </div>
-                <!-- Price -->
-                <div class="mb-4">
-                    <label for="price" class="block text-sm font-medium text-gray-700">Price (Double)</label>
-                    <input type="number" step="0.01" id="price" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
+                <div class="w-12 h-12 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-brand-600">
+                    <i class="fa-solid fa-boxes-stacked text-xl"></i>
                 </div>
-                <!-- Quantity & Min Required (Side by side on medium screens) -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <label for="quantity" class="block text-sm font-medium text-gray-700">Initial Quantity (Int)</label>
-                        <input type="number" id="quantity" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
-                    </div>
-                    <div>
-                        <label for="minRequired" class="block text-sm font-medium text-gray-700">Min Stock (Int)</label>
-                        <input type="number" id="minRequired" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
-                    </div>
-                </div>
-
-                <button type="submit" class="w-full py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">
-                    Add Product
-                </button>
-            </form>
+            </div>
         </div>
 
-        <!-- View Products Table -->
-        <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-lg">
-            <h2 class="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">Product Inventory (Current Stock)</h2>
+        <!-- Card 2: Low-Stock Alerts -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs hover:shadow-md transition">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Low-Stock Warnings</p>
+                    <h3 id="cardLowStockCount" class="text-2xl font-black text-amber-600 mt-1">--</h3>
+                    <p class="text-[11px] text-amber-600 font-semibold mt-1 flex items-center gap-1">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Quantity &le; Min Threshold
+                    </p>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-500">
+                    <i class="fa-solid fa-triangle-exclamation text-xl"></i>
+                </div>
+            </div>
+        </div>
 
-            <div class="table-container overflow-x-auto rounded-lg shadow-md border border-gray-200">
-                <table class="min-w-full divide-y divide-gray-200 product-table">
-                    <thead class="bg-gray-50">
-                    <tr>
-                        <th scope="col">ID</th>
-                        <th scope="col">Name</th>
-                        <th scope="col">Price</th>
-                        <th scope="col">Qty</th>
-                        <th scope="col">Min Stock</th>
-                        <th scope="col">Active</th>
-                        <th scope="col">Restock</th>
-                        <th scope="col">Actions</th>
-                    </tr>
+        <!-- Card 3: Total Sales Revenue -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs hover:shadow-md transition">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Sales Revenue</p>
+                    <h3 id="cardTotalRevenue" class="text-2xl font-black text-slate-900 mt-1">₹0.00</h3>
+                    <p class="text-[11px] text-slate-400 mt-1 flex items-center gap-1">
+                        <i class="fa-solid fa-chart-line text-emerald-500"></i> Lifetime store checkouts
+                    </p>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
+                    <i class="fa-solid fa-indian-rupee-sign text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 4: High Demand Items This Month -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs hover:shadow-md transition">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">High Demand Items</p>
+                    <h3 id="cardHighDemandCount" class="text-2xl font-black text-rose-600 mt-1">--</h3>
+                    <p class="text-[11px] text-rose-600 font-semibold mt-1 flex items-center gap-1">
+                        <i class="fa-solid fa-fire text-rose-500"></i> Seasonal pre-stock required
+                    </p>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600">
+                    <i class="fa-solid fa-bolt text-xl"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PRIMARY TAB NAVIGATION BAR -->
+    <div class="flex items-center gap-2 border-b border-slate-200 pb-1">
+        <button onclick="switchTab('inventory')" id="tabBtnInventory"
+                class="px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition cursor-pointer bg-brand-600 text-white shadow-sm shadow-brand-500/20">
+            <i class="fa-solid fa-box-open text-xs"></i>
+            <span>Inventory Management</span>
+            <span id="tabBadgeInventory" class="ml-1.5 px-2 py-0.5 text-[10px] font-black rounded-full bg-white/20 text-white">0</span>
+        </button>
+
+        <button onclick="switchTab('analytics')" id="tabBtnAnalytics"
+                class="px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition cursor-pointer text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+            <i class="fa-solid fa-chart-pie text-xs"></i>
+            <span>Demand Analytics &amp; Forecasting</span>
+            <span class="ml-1.5 px-2 py-0.5 text-[10px] font-black rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">AI Engine</span>
+        </button>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- TAB 1: INVENTORY MANAGEMENT VIEW (Product CRUD + Low Stock Alerts) -->
+    <!-- ================================================================= -->
+    <section id="tabContentInventory" class="space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            
+            <!-- Left Panel (1/3 width = 4 cols): Add/Edit Product Form -->
+            <div class="lg:col-span-4 bg-white rounded-2xl border border-slate-200 shadow-xs p-6 sticky top-24">
+                <div class="flex items-center gap-2.5 pb-4 mb-5 border-b border-slate-100">
+                    <div class="w-9 h-9 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-plus text-sm"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-base font-bold text-slate-900">Add New Product</h2>
+                        <p class="text-xs text-slate-400">Expand warehouse stock catalog</p>
+                    </div>
+                </div>
+
+                <form id="addProductForm" class="space-y-4">
+                    
+                    <!-- Product Name -->
+                    <div>
+                        <label for="name" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Product Name <span class="text-rose-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                <i class="fa-solid fa-tag text-xs"></i>
+                            </span>
+                            <input type="text" id="name" required placeholder="e.g. Maggi 2-Minute Noodles"
+                                   class="w-full pl-9 pr-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition">
+                        </div>
+                    </div>
+
+                    <!-- Unit Price -->
+                    <div>
+                        <label for="price" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Unit Price (₹) <span class="text-rose-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 font-bold text-xs">
+                                ₹
+                            </span>
+                            <input type="number" id="price" step="0.01" min="0" required placeholder="0.00"
+                                   class="w-full pl-9 pr-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition">
+                        </div>
+                    </div>
+
+                    <!-- Quantity & Min Alert in 2 Columns -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label for="quantity" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                Initial Stock <span class="text-rose-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                    <i class="fa-solid fa-boxes-stacked text-xs"></i>
+                                </span>
+                                <input type="number" id="quantity" min="0" required placeholder="20"
+                                       class="w-full pl-8 pr-2.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="minRequired" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                Min Threshold <span class="text-rose-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                    <i class="fa-solid fa-bell text-xs"></i>
+                                </span>
+                                <input type="number" id="minRequired" min="1" required placeholder="5"
+                                       class="w-full pl-8 pr-2.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="pt-2">
+                        <button type="submit" id="submitProductBtn"
+                                class="w-full py-3 px-4 rounded-xl text-white font-bold text-sm bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 shadow-md shadow-brand-500/20 hover:shadow-lg transition flex items-center justify-center gap-2 cursor-pointer">
+                            <i class="fa-solid fa-plus text-xs"></i>
+                            <span>Save to Inventory</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Right Panel (2/3 width = 8 cols): Interactive Inventory Data Table -->
+            <div class="lg:col-span-8 bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+                
+                <!-- Toolbar -->
+                <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                            <span>Warehouse Inventory Catalog</span>
+                            <span id="productCountBadge" class="px-2 py-0.5 text-xs font-bold rounded-full bg-slate-100 text-slate-600">0 items</span>
+                        </h2>
+                        <p class="text-xs text-slate-400">Real-time stock monitoring, restock refill, and soft-delete</p>
+                    </div>
+
+                    <!-- Search Bar & Filters -->
+                    <div class="flex items-center gap-2 w-full sm:w-auto">
+                        <div class="relative flex-grow sm:w-64">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                            </span>
+                            <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Search by name or ID..."
+                                   class="w-full pl-8 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition">
+                        </div>
+
+                        <!-- Low Stock Filter Toggle -->
+                        <button onclick="toggleLowStockFilter()" id="filterLowStockBtn"
+                                class="px-3 py-2 rounded-xl text-xs font-semibold border border-slate-200 text-slate-600 hover:bg-slate-50 transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer"
+                                title="Show only items below minimum threshold">
+                            <i class="fa-solid fa-filter text-[10px]"></i>
+                            <span id="filterBtnText">Low Stock</span>
+                        </button>
+
+                        <!-- Refresh -->
+                        <button onclick="fetchProducts()" class="p-2 rounded-xl border border-slate-200 text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition cursor-pointer" title="Refresh Products">
+                            <i class="fa-solid fa-arrow-rotate-right text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Product Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50/75 border-b border-slate-200 text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
+                                <th class="py-3 px-4">ID</th>
+                                <th class="py-3 px-4">Product Name</th>
+                                <th class="py-3 px-4">Unit Price</th>
+                                <th class="py-3 px-4">Stock</th>
+                                <th class="py-3 px-4">Min Required</th>
+                                <th class="py-3 px-4">Status</th>
+                                <th class="py-3 px-4 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productTableBody" class="divide-y divide-slate-100 text-sm">
+                            <tr>
+                                <td colspan="7" class="py-12 text-center text-slate-400">
+                                    <i class="fa-solid fa-circle-notch fa-spin text-xl text-brand-500 mb-2"></i>
+                                    <p class="text-xs">Loading live inventory...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Table Footer -->
+                <div class="p-4 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between text-xs text-slate-400">
+                    <span id="showingCount">Showing 0 products</span>
+                    <span class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Healthy
+                        <span class="w-2 h-2 rounded-full bg-amber-500 ml-2"></span> Low Stock
+                        <span class="w-2 h-2 rounded-full bg-rose-500 ml-2"></span> Out of Stock
+                    </span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 2: DEMAND ANALYTICS & INSIGHTS (Seasonal Demand + Pre-stock Forecasting) -->
+    <!-- ========================================================================= -->
+    <section id="tabContentAnalytics" class="space-y-6 hidden">
+        
+        <!-- Filter Controls Card -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-brand-600">
+                        <i class="fa-solid fa-brain text-lg"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-base font-bold text-slate-900">Historical Sales &amp; Seasonal Demand Forecasting</h2>
+                        <p class="text-xs text-slate-400">Analyze past monthly checkout volumes to calculate intelligent pre-stock recommendations</p>
+                    </div>
+                </div>
+
+                <!-- Controls: Month Dropdown, Year Dropdown, Analyze Button -->
+                <div class="flex flex-wrap items-center gap-3">
+                    
+                    <!-- Month Selector -->
+                    <div>
+                        <label for="filterMonth" class="sr-only">Month</label>
+                        <select id="filterMonth" class="px-3 py-2 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500">
+                            <option value="1">January</option>
+                            <option value="2">February</option>
+                            <option value="3">March</option>
+                            <option value="4">April</option>
+                            <option value="5">May</option>
+                            <option value="6">June</option>
+                            <option value="7">July</option>
+                            <option value="8">August</option>
+                            <option value="9">September</option>
+                            <option value="10">October</option>
+                            <option value="11">November</option>
+                            <option value="12">December</option>
+                        </select>
+                    </div>
+
+                    <!-- Year Selector -->
+                    <div>
+                        <label for="filterYear" class="sr-only">Year</label>
+                        <select id="filterYear" class="px-3 py-2 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500">
+                            <option value="0">All Historical Years (Pattern Mode)</option>
+                            <option value="2026">2026</option>
+                            <option value="2025">2025</option>
+                            <option value="2024">2024</option>
+                            <option value="2023">2023</option>
+                        </select>
+                    </div>
+
+                    <!-- Analyze Demand Button -->
+                    <button onclick="runDemandAnalysis()" id="analyzeDemandBtn"
+                            class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 shadow-md shadow-brand-500/20 transition flex items-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-chart-simple text-xs"></i>
+                        <span>Analyze Demand</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Algorithm Explanation Banner -->
+            <div class="mt-4 pt-4 border-t border-slate-100 flex items-start gap-2 text-xs text-slate-500">
+                <i class="fa-solid fa-circle-info text-brand-600 mt-0.5"></i>
+                <p>
+                    <span class="font-bold text-slate-700">Predictive Intelligence:</span> 
+                    The engine computes historical sales velocity for the selected calendar month across all recorded bills. If warehouse stock is below 50% of historical demand, a 
+                    <span class="px-1.5 py-0.5 rounded font-bold text-rose-700 bg-rose-50 border border-rose-200">CRITICAL</span> alert triggers for immediate pre-stocking.
+                </p>
+            </div>
+        </div>
+
+        <!-- Chart.js Intelligence Visualizations -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- Left Chart: Top Selling Products in Selected Month (7 Cols) -->
+            <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-xs p-5">
+                <div class="flex items-center justify-between pb-3 mb-2 border-b border-slate-100">
+                    <div>
+                        <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-chart-column text-brand-600"></i>
+                            <span id="chartMonthLabel">Top Selling Products in Selected Month</span>
+                        </h3>
+                        <p class="text-xs text-slate-400">Aggregated checkout units sold</p>
+                    </div>
+                    <span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-slate-100 text-slate-600">Units Sold</span>
+                </div>
+                <div class="relative h-72 w-full">
+                    <canvas id="monthlyDemandChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Right Chart: Monthly Revenue Trends (5 Cols) -->
+            <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-xs p-5">
+                <div class="flex items-center justify-between pb-3 mb-2 border-b border-slate-100">
+                    <div>
+                        <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-arrow-trend-up text-emerald-500"></i>
+                            <span>Store Revenue Trend</span>
+                        </h3>
+                        <p class="text-xs text-slate-400">Monthly billing total history</p>
+                    </div>
+                    <span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">Revenue (₹)</span>
+                </div>
+                <div class="relative h-72 w-full">
+                    <canvas id="revenueTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Demand Forecast & Restock Recommendation Table -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+            <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-boxes-packing text-brand-600"></i>
+                        <span>Pre-Stock Demand Forecast Table</span>
+                        <span id="forecastCountBadge" class="px-2 py-0.5 text-xs font-bold rounded-full bg-slate-100 text-slate-600">0 items</span>
+                    </h3>
+                    <p class="text-xs text-slate-400">Comparison of historical checkout velocity vs current warehouse quantity</p>
+                </div>
+
+                <div class="flex items-center gap-3 text-xs">
+                    <span class="inline-flex items-center gap-1 font-semibold text-rose-600">
+                        <span class="w-2 h-2 rounded-full bg-rose-500"></span> Critical Refill
+                    </span>
+                    <span class="inline-flex items-center gap-1 font-semibold text-amber-600">
+                        <span class="w-2 h-2 rounded-full bg-amber-500"></span> Moderate
+                    </span>
+                    <span class="inline-flex items-center gap-1 font-semibold text-emerald-600">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Sufficient
+                    </span>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50/75 border-b border-slate-200 text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
+                            <th class="py-3 px-4">Product Details</th>
+                            <th class="py-3 px-4">Units Sold (Selected Mo.)</th>
+                            <th class="py-3 px-4">Monthly Revenue</th>
+                            <th class="py-3 px-4">Current Warehouse Stock</th>
+                            <th class="py-3 px-4">Min Required</th>
+                            <th class="py-3 px-4">Pre-Stock Recommendation</th>
+                            <th class="py-3 px-4 text-right">Action</th>
+                        </tr>
                     </thead>
-                    <tbody id="productTableBody" class="bg-white divide-y divide-gray-200">
-                    <!-- Products will be injected here -->
-                    <tr><td colspan="8" class="text-center py-4 text-gray-500">Loading products...</td></tr>
+                    <tbody id="forecastTableBody" class="divide-y divide-slate-100 text-sm">
+                        <tr>
+                            <td colspan="7" class="py-12 text-center text-slate-400">
+                                <i class="fa-solid fa-circle-notch fa-spin text-xl text-brand-500 mb-2"></i>
+                                <p class="text-xs">Computing seasonal demand forecast...</p>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
+
+            <!-- Table Footer -->
+            <div class="p-4 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between text-xs text-slate-400">
+                <span id="forecastShowingCount">Ready to analyze demand</span>
+                <span class="text-slate-400">Automated raw JDBC demand projection engine</span>
+            </div>
         </div>
-    </div>
-</div>
 
-<!-- NEW: Restock Modal -->
-<div id="restockModal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-50 opacity-0" onclick="closeModal()">
-    <div class="modal-content bg-white p-8 rounded-xl shadow-2xl w-full max-w-sm" onclick="event.stopPropagation()">
-        <h3 class="text-xl font-semibold mb-4 text-gray-700">Restock Product: <span id="restockProductName" class="font-bold"></span></h3>
-        <p class="text-sm text-gray-500 mb-4">Current Stock: <span id="restockCurrentQty" class="font-medium"></span></p>
+        <!-- Top 5 Bestsellers Quick Cards Row -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5">
+            <h3 class="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
+                <i class="fa-solid fa-trophy text-amber-500"></i>
+                <span>All-Time Top 5 Bestselling Products</span>
+            </h3>
+            <div id="topBestsellersList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+    </section>
 
-        <form id="restockForm">
+</main>
+
+<!-- RESTOCK PRODUCT MODAL -->
+<div id="restockModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs hidden opacity-0 transition-opacity duration-200" onclick="closeModal()">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden transform scale-95 transition-all duration-200" onclick="event.stopPropagation()">
+        
+        <!-- Header -->
+        <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                    <i class="fa-solid fa-boxes-packing text-sm"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-900 text-sm">Restock Warehouse Quantity</h3>
+                    <p class="text-xs text-slate-400" id="restockProductSub">Product details</p>
+                </div>
+            </div>
+            <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+        </div>
+
+        <!-- Form -->
+        <form id="restockForm" class="p-5 space-y-4">
             <input type="hidden" id="restockProductId">
-            <div class="mb-4">
-                <label for="restockQuantity" class="block text-sm font-medium text-gray-700">Quantity to Add</label>
-                <input type="number" id="restockQuantity" required min="1" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border" placeholder="Enter restock amount">
+            
+            <div class="bg-slate-50 rounded-xl p-3 border border-slate-100 flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-slate-400">Product Name</p>
+                    <p id="restockProductName" class="text-sm font-bold text-slate-800">--</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs text-slate-400">Current In Stock</p>
+                    <p id="restockCurrentQty" class="text-sm font-bold text-slate-800">0</p>
+                </div>
             </div>
 
-            <div class="flex justify-end space-x-3">
-                <button type="button" onclick="closeModal()" class="py-2 px-4 rounded-lg text-gray-700 bg-gray-200 hover:bg-gray-300 transition duration-150">Cancel</button>
-                <button type="submit" class="py-2 px-4 rounded-lg text-white bg-green-600 hover:bg-green-700 transition duration-150">Restock</button>
+            <div>
+                <label for="restockQuantity" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Quantity to Add <span class="text-rose-500">*</span>
+                </label>
+                <input type="number" id="restockQuantity" required min="1" placeholder="e.g. 50"
+                       class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition">
+            </div>
+
+            <!-- Quick Add Pills -->
+            <div class="flex items-center gap-2">
+                <span class="text-xs text-slate-400">Quick add:</span>
+                <button type="button" onclick="setRestockQty(10)" class="px-2.5 py-1 text-xs rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition cursor-pointer">+10</button>
+                <button type="button" onclick="setRestockQty(25)" class="px-2.5 py-1 text-xs rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition cursor-pointer">+25</button>
+                <button type="button" onclick="setRestockQty(50)" class="px-2.5 py-1 text-xs rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition cursor-pointer">+50</button>
+                <button type="button" onclick="setRestockQty(100)" class="px-2.5 py-1 text-xs rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition cursor-pointer">+100</button>
+            </div>
+
+            <!-- Actions -->
+            <div class="pt-3 flex items-center justify-end gap-2.5">
+                <button type="button" onclick="closeModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer">
+                    Cancel
+                </button>
+                <button type="submit" class="px-5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-check"></i>
+                    <span>Confirm Restock</span>
+                </button>
             </div>
         </form>
     </div>
 </div>
 
+<!-- LOW-STOCK NOTIFICATION SLIDE-OVER DRAWER -->
+<div id="notificationDrawer" class="fixed top-16 right-0 bottom-0 w-80 sm:w-96 bg-white border-l border-slate-200 shadow-2xl z-40 flex flex-col">
+    <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+        <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
+            <h3 class="font-bold text-slate-800 text-sm">Low-Stock Warnings (<span id="alertCount">0</span>)</h3>
+        </div>
+        <button onclick="toggleNotifications()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-200/50 transition">
+            <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+    </div>
 
-<!-- Toast Notification Container -->
-<div id="toastContainer" class="fixed bottom-4 right-4 space-y-2 z-50">
-    <!-- Notifications will appear here -->
+    <div id="notificationList" class="flex-grow overflow-y-auto p-4 space-y-3">
+        <!-- Injected by JS -->
+    </div>
+
+    <div id="noAlertsMsg" class="hidden p-8 text-center flex-grow flex flex-col items-center justify-center">
+        <div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center text-xl mb-3">
+            <i class="fa-solid fa-shield-check"></i>
+        </div>
+        <p class="font-bold text-slate-800 text-sm">All Inventory Healthy</p>
+        <p class="text-xs text-slate-400 mt-1">No products are currently below their minimum threshold.</p>
+    </div>
 </div>
 
-<script>
-<!--    const API_BASE_URL = 'http://localhost:8080/api/admin/products';-->
-    const API_BASE_URL = '/api/admin/products';
+<!-- TOAST CONTAINER -->
+<div id="toastContainer" class="fixed bottom-5 right-5 space-y-2 z-50"></div>
 
-    // Global logout function
-    function logout() {
-        window.location.href = 'login.html';
+<!-- ========================================================================= -->
+<!-- JAVASCRIPT CONTROLLER LOGIC -->
+<!-- ========================================================================= -->
+<script>
+    const API_PRODUCTS = '/api/admin/products';
+    const API_ANALYTICS_MONTHLY = '/api/admin/analytics/monthly';
+    const API_ANALYTICS_SUMMARY = '/api/admin/analytics/summary';
+
+    let allProducts = [];
+    let isLowStockFilterActive = false;
+    let monthlyDemandChart = null;
+    let revenueTrendChart = null;
+    let currentActiveTab = 'inventory';
+
+    // 1. Tab Switching
+    function switchTab(tab) {
+        currentActiveTab = tab;
+        const btnInventory = document.getElementById('tabBtnInventory');
+        const btnAnalytics = document.getElementById('tabBtnAnalytics');
+        const contentInventory = document.getElementById('tabContentInventory');
+        const contentAnalytics = document.getElementById('tabContentAnalytics');
+
+        if (tab === 'inventory') {
+            btnInventory.className = "px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition cursor-pointer bg-brand-600 text-white shadow-sm shadow-brand-500/20";
+            btnAnalytics.className = "px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition cursor-pointer text-slate-600 hover:text-slate-900 hover:bg-slate-100";
+            contentInventory.classList.remove('hidden');
+            contentAnalytics.classList.add('hidden');
+        } else {
+            btnAnalytics.className = "px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition cursor-pointer bg-brand-600 text-white shadow-sm shadow-brand-500/20";
+            btnInventory.className = "px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition cursor-pointer text-slate-600 hover:text-slate-900 hover:bg-slate-100";
+            contentAnalytics.classList.remove('hidden');
+            contentInventory.classList.add('hidden');
+            
+            // Re-render or trigger demand analysis if first time opening
+            runDemandAnalysis();
+        }
     }
 
-    // --- MODAL LOGIC (Unchanged) ---
+    // 2. Fetch Top Summary Stats & Monthly Trends
+    async function fetchOverallSummary() {
+        try {
+            const response = await fetch(API_ANALYTICS_SUMMARY);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+
+            // Cards
+            if (data.totalProducts !== undefined) {
+                document.getElementById('cardTotalProducts').textContent = data.totalProducts;
+                document.getElementById('tabBadgeInventory').textContent = data.totalProducts;
+            }
+            if (data.lowStockCount !== undefined) {
+                document.getElementById('cardLowStockCount').textContent = data.lowStockCount;
+            }
+            if (data.totalRevenue !== undefined) {
+                document.getElementById('cardTotalRevenue').textContent = formatCurrency(data.totalRevenue);
+            }
+            if (data.highDemandCount !== undefined) {
+                document.getElementById('cardHighDemandCount').textContent = data.highDemandCount;
+            }
+
+            // Top 5 bestsellers widget
+            if (data.topBestsellers && Array.isArray(data.topBestsellers)) {
+                renderTopBestsellers(data.topBestsellers);
+            }
+
+            // Monthly Revenue Trend Chart
+            if (data.monthlyTrends && Array.isArray(data.monthlyTrends)) {
+                renderRevenueTrendChart(data.monthlyTrends);
+            }
+
+        } catch (err) {
+            console.warn('Could not load summary stats:', err);
+        }
+    }
+
+    // 3. Render Revenue Trend Line Chart
+    function renderRevenueTrendChart(trends) {
+        const ctx = document.getElementById('revenueTrendChart').getContext('2d');
+        const labels = trends.map(t => t.month);
+        const revenues = trends.map(t => t.revenue);
+
+        if (revenueTrendChart) {
+            revenueTrendChart.destroy();
+        }
+
+        revenueTrendChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels.length ? labels : ['No Data'],
+                datasets: [{
+                    label: 'Revenue (₹)',
+                    data: revenues.length ? revenues : [0],
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    borderWidth: 2.5,
+                    fill: true,
+                    tension: 0.35,
+                    pointBackgroundColor: '#10b981',
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return ` Revenue: ${formatCurrency(context.parsed.y)}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(val) { return '₹' + val.toLocaleString(); },
+                            font: { size: 10 }
+                        },
+                        grid: { color: '#f1f5f9' }
+                    },
+                    x: {
+                        ticks: { font: { size: 10 } },
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    }
+
+    // 4. Render Top 5 Bestsellers Mini Cards
+    function renderTopBestsellers(list) {
+        const container = document.getElementById('topBestsellersList');
+        if (!list || list.length === 0) {
+            container.innerHTML = `<p class="col-span-full text-xs text-slate-400">No checkout history recorded yet.</p>`;
+            return;
+        }
+
+        container.innerHTML = list.map((item, idx) => `
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+                <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+                    <span class="font-extrabold text-amber-600">#${idx + 1} Best</span>
+                    <span>${item.totalSold} sold</span>
+                </div>
+                <h4 class="font-bold text-slate-800 text-xs truncate" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</h4>
+                <p class="text-[11px] text-emerald-600 font-bold mt-1">${formatCurrency(item.revenue)}</p>
+            </div>
+        `).join('');
+    }
+
+    // 5. API: Fetch All Products for Tab 1
+    async function fetchProducts() {
+        const tableBody = document.getElementById('productTableBody');
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="7" class="py-12 text-center text-slate-400">
+                    <i class="fa-solid fa-circle-notch fa-spin text-xl text-brand-500 mb-2"></i>
+                    <p class="text-xs">Fetching live inventory catalog...</p>
+                </td>
+            </tr>`;
+
+        try {
+            const response = await fetch(API_PRODUCTS);
+            if (!response.ok) throw new Error(`HTTP error ${response.status}`);
+            
+            allProducts = await response.json();
+            
+            // Sync summary cards with fresh product list
+            document.getElementById('cardTotalProducts').textContent = allProducts.length;
+            document.getElementById('tabBadgeInventory').textContent = allProducts.length;
+            
+            const lowCount = allProducts.filter(p => p.quantity <= p.minRequired && p.isActive).length;
+            document.getElementById('cardLowStockCount').textContent = lowCount;
+
+            renderProducts(getFilteredProducts());
+            renderLowStockAlerts(allProducts);
+
+        } catch (error) {
+            console.error('Fetch products error:', error);
+            showToast('Failed to load inventory. Check backend connection.', 'error');
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="py-12 text-center text-rose-500">
+                        <i class="fa-solid fa-triangle-exclamation text-xl mb-2"></i>
+                        <p class="text-xs font-semibold">Failed to load inventory products</p>
+                    </td>
+                </tr>`;
+        }
+    }
+
+    // 6. Filter & Search Logic for Tab 1
+    function getFilteredProducts() {
+        const query = document.getElementById('searchInput').value.trim().toLowerCase();
+        return allProducts.filter(p => {
+            const matchesQuery = p.name.toLowerCase().includes(query) || String(p.id).includes(query);
+            const matchesStock = isLowStockFilterActive ? (p.quantity <= p.minRequired) : true;
+            return matchesQuery && matchesStock;
+        });
+    }
+
+    function handleSearch() {
+        renderProducts(getFilteredProducts());
+    }
+
+    function toggleLowStockFilter() {
+        isLowStockFilterActive = !isLowStockFilterActive;
+        const btn = document.getElementById('filterLowStockBtn');
+        const text = document.getElementById('filterBtnText');
+        
+        if (isLowStockFilterActive) {
+            btn.classList.add('bg-amber-500', 'text-white', 'border-amber-600');
+            btn.classList.remove('text-slate-600', 'border-slate-200');
+            text.textContent = 'Showing Low Stock';
+        } else {
+            btn.classList.remove('bg-amber-500', 'text-white', 'border-amber-600');
+            btn.classList.add('text-slate-600', 'border-slate-200');
+            text.textContent = 'Low Stock';
+        }
+        renderProducts(getFilteredProducts());
+    }
+
+    // 7. Render Product Table Rows for Tab 1
+    function renderProducts(products) {
+        const tableBody = document.getElementById('productTableBody');
+        const countBadge = document.getElementById('productCountBadge');
+        const showingCount = document.getElementById('showingCount');
+
+        countBadge.textContent = `${products.length} items`;
+        showingCount.textContent = `Showing ${products.length} of ${allProducts.length} products`;
+
+        if (products.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="py-12 text-center text-slate-400">
+                        <i class="fa-solid fa-box-open text-3xl text-slate-300 mb-2"></i>
+                        <p class="text-sm font-semibold text-slate-600">No matching products found</p>
+                        <p class="text-xs text-slate-400">Try adjusting your search query or filters</p>
+                    </td>
+                </tr>`;
+            return;
+        }
+
+        tableBody.innerHTML = products.map(product => {
+            const isLow = product.quantity <= product.minRequired;
+            const isOut = product.quantity === 0;
+
+            let badgeHtml = '';
+            if (isOut) {
+                badgeHtml = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200"><span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Out of Stock</span>`;
+            } else if (isLow) {
+                badgeHtml = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Low Stock</span>`;
+            } else {
+                badgeHtml = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Healthy</span>`;
+            }
+
+            return `
+                <tr class="hover:bg-slate-50/80 transition ${isLow ? 'bg-amber-50/20' : ''}">
+                    <td class="py-3.5 px-4 font-mono text-xs text-slate-400">#${product.id}</td>
+                    <td class="py-3.5 px-4 font-semibold text-slate-800">${escapeHtml(product.name)}</td>
+                    <td class="py-3.5 px-4 font-bold text-slate-900">${formatCurrency(product.price)}</td>
+                    <td class="py-3.5 px-4 font-bold ${isLow ? 'text-amber-600' : 'text-slate-800'}">
+                        ${product.quantity}
+                    </td>
+                    <td class="py-3.5 px-4 text-xs text-slate-500">${product.minRequired}</td>
+                    <td class="py-3.5 px-4">${badgeHtml}</td>
+                    <td class="py-3.5 px-4 text-right space-x-1 whitespace-nowrap">
+                        <button onclick="openModal(${product.id}, '${escapeAttr(product.name)}', ${product.quantity})"
+                                class="px-2.5 py-1.5 text-xs font-semibold text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 rounded-lg transition inline-flex items-center gap-1 cursor-pointer"
+                                title="Restock Quantity">
+                            <i class="fa-solid fa-plus text-[10px]"></i>
+                            <span>Restock</span>
+                        </button>
+                        <button onclick="handleDeactivate(${product.id}, '${escapeAttr(product.name)}')"
+                                class="px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-transparent hover:border-rose-200 rounded-lg transition cursor-pointer"
+                                title="Delete / Deactivate product">
+                            <i class="fa-regular fa-trash-can"></i>
+                        </button>
+                    </td>
+                </tr>`;
+        }).join('');
+    }
+
+    // 8. Tab 2: Run Demand Analysis API
+    async function runDemandAnalysis() {
+        const monthSelect = document.getElementById('filterMonth');
+        const yearSelect = document.getElementById('filterYear');
+        const month = parseInt(monthSelect.value) || (new Date().getMonth() + 1);
+        const year = parseInt(yearSelect.value) || 0;
+
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        const selectedMonthName = monthNames[month - 1];
+        document.getElementById('chartMonthLabel').textContent = `Top Selling Products in ${selectedMonthName} ${year > 0 ? year : '(All Years)'}`;
+
+        const btn = document.getElementById('analyzeDemandBtn');
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin text-xs"></i> Analyzing...`;
+
+        const forecastBody = document.getElementById('forecastTableBody');
+        forecastBody.innerHTML = `
+            <tr>
+                <td colspan="7" class="py-12 text-center text-slate-400">
+                    <i class="fa-solid fa-circle-notch fa-spin text-xl text-brand-500 mb-2"></i>
+                    <p class="text-xs">Computing seasonal checkout patterns for ${selectedMonthName}...</p>
+                </td>
+            </tr>`;
+
+        try {
+            const url = `${API_ANALYTICS_MONTHLY}?month=${month}&year=${year}`;
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            
+            const analyticsList = await response.json();
+            renderDemandChart(analyticsList);
+            renderForecastTable(analyticsList, selectedMonthName);
+
+        } catch (err) {
+            console.error('Demand analysis error:', err);
+            showToast('Failed to calculate demand analytics.', 'error');
+            forecastBody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="py-12 text-center text-rose-500">
+                        <i class="fa-solid fa-triangle-exclamation text-xl mb-2"></i>
+                        <p class="text-xs font-semibold">Could not retrieve demand analytics</p>
+                    </td>
+                </tr>`;
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fa-solid fa-chart-simple text-xs"></i><span>Analyze Demand</span>`;
+        }
+    }
+
+    // 9. Tab 2: Render Bar Chart for Monthly Top Sellers
+    function renderDemandChart(data) {
+        const ctx = document.getElementById('monthlyDemandChart').getContext('2d');
+        
+        // Take top 8 products for clean chart visualization
+        const chartSlice = data.slice(0, 8);
+        const labels = chartSlice.map(d => d.productName);
+        const quantities = chartSlice.map(d => d.totalQuantitySold);
+
+        if (monthlyDemandChart) {
+            monthlyDemandChart.destroy();
+        }
+
+        monthlyDemandChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels.length ? labels : ['No Sales Recorded'],
+                datasets: [{
+                    label: 'Units Sold',
+                    data: quantities.length ? quantities : [0],
+                    backgroundColor: 'rgba(99, 102, 241, 0.85)',
+                    hoverBackgroundColor: '#4f46e5',
+                    borderRadius: 8,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return ` Quantity Sold: ${context.parsed.y} units`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1, font: { size: 10 } },
+                        grid: { color: '#f1f5f9' }
+                    },
+                    x: {
+                        ticks: {
+                            font: { size: 10 },
+                            maxRotation: 25,
+                            minRotation: 0
+                        },
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    }
+
+    // 10. Tab 2: Render Demand Forecast Table
+    function renderForecastTable(list, monthName) {
+        const forecastBody = document.getElementById('forecastTableBody');
+        const badge = document.getElementById('forecastCountBadge');
+        const showingCount = document.getElementById('forecastShowingCount');
+
+        badge.textContent = `${list.length} items`;
+        showingCount.textContent = `Showing demand projections for ${list.length} products in ${monthName}`;
+
+        if (list.length === 0) {
+            forecastBody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="py-12 text-center text-slate-400">
+                        <i class="fa-solid fa-calendar-xmark text-3xl text-slate-300 mb-2"></i>
+                        <p class="text-sm font-semibold text-slate-600">No checkout sales recorded in ${monthName}</p>
+                        <p class="text-xs text-slate-400">Checkout items from POS in this month to build predictive seasonal trends</p>
+                    </td>
+                </tr>`;
+            return;
+        }
+
+        forecastBody.innerHTML = list.map(item => {
+            const isCritical = item.restockRecommendation.startsWith("CRITICAL");
+            const isModerate = item.restockRecommendation.startsWith("MODERATE");
+            
+            let recBadge = '';
+            if (isCritical) {
+                recBadge = `
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
+                        ${escapeHtml(item.restockRecommendation)}
+                    </span>`;
+            } else if (isModerate) {
+                recBadge = `
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                        ${escapeHtml(item.restockRecommendation)}
+                    </span>`;
+            } else {
+                recBadge = `
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        ${escapeHtml(item.restockRecommendation)}
+                    </span>`;
+            }
+
+            return `
+                <tr class="hover:bg-slate-50/80 transition ${isCritical ? 'bg-rose-50/20' : isModerate ? 'bg-amber-50/20' : ''}">
+                    <td class="py-3.5 px-4">
+                        <p class="font-bold text-slate-900">${escapeHtml(item.productName)}</p>
+                        <p class="text-[10px] text-slate-400 font-mono">ID #${item.productId}</p>
+                    </td>
+                    <td class="py-3.5 px-4 font-bold text-slate-800">
+                        <span class="text-brand-600 font-black text-sm">${item.totalQuantitySold}</span> units
+                    </td>
+                    <td class="py-3.5 px-4 font-semibold text-slate-700">
+                        ${formatCurrency(item.totalRevenueGenerated)}
+                    </td>
+                    <td class="py-3.5 px-4 font-bold ${item.currentStock < item.totalQuantitySold ? 'text-rose-600' : 'text-slate-900'}">
+                        ${item.currentStock}
+                    </td>
+                    <td class="py-3.5 px-4 text-xs text-slate-500">
+                        ${item.minRequired}
+                    </td>
+                    <td class="py-3.5 px-4">
+                        ${recBadge}
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                        <button onclick="openModal(${item.productId}, '${escapeAttr(item.productName)}', ${item.currentStock})"
+                                class="px-2.5 py-1.5 text-xs font-bold text-white ${isCritical ? 'bg-rose-600 hover:bg-rose-700' : isModerate ? 'bg-amber-600 hover:bg-amber-700' : 'bg-brand-600 hover:bg-brand-700'} rounded-lg shadow-xs transition inline-flex items-center gap-1 cursor-pointer">
+                            <i class="fa-solid fa-plus text-[10px]"></i>
+                            <span>Refill</span>
+                        </button>
+                    </td>
+                </tr>`;
+        }).join('');
+    }
+
+    // 11. Low-Stock Drawer
+    function renderLowStockAlerts(products) {
+        const lowStockItems = products.filter(p => p.quantity <= p.minRequired && p.isActive);
+        const badge = document.getElementById('notificationBadge');
+        const alertCount = document.getElementById('alertCount');
+        const list = document.getElementById('notificationList');
+        const noAlerts = document.getElementById('noAlertsMsg');
+
+        const count = lowStockItems.length;
+        alertCount.textContent = count;
+        
+        if (count > 0) {
+            badge.textContent = count > 99 ? '99+' : count;
+            badge.classList.remove('hidden');
+            noAlerts.classList.add('hidden');
+            list.classList.remove('hidden');
+
+            list.innerHTML = lowStockItems.map(p => `
+                <div class="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200/80 flex items-center justify-between gap-3">
+                    <div>
+                        <p class="font-bold text-xs text-amber-900">${escapeHtml(p.name)}</p>
+                        <p class="text-[11px] text-amber-700 mt-0.5">
+                            Stock: <span class="font-bold">${p.quantity}</span> (Min Threshold: ${p.minRequired})
+                        </p>
+                    </div>
+                    <button onclick="openModal(${p.id}, '${escapeAttr(p.name)}', ${p.quantity}); toggleNotifications();"
+                            class="px-2.5 py-1.5 text-[11px] font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-lg shadow-xs transition cursor-pointer">
+                        Restock
+                    </button>
+                </div>`).join('');
+        } else {
+            badge.classList.add('hidden');
+            noAlerts.classList.remove('hidden');
+            list.classList.add('hidden');
+        }
+    }
+
+    function toggleNotifications() {
+        document.getElementById('notificationDrawer').classList.toggle('open');
+    }
+
+    // 12. Add Product
+    async function handleAddProduct(event) {
+        event.preventDefault();
+        const form = event.target;
+        const btn = document.getElementById('submitProductBtn');
+
+        const newProduct = {
+            name: form.name.value.trim(),
+            price: parseFloat(form.price.value),
+            quantity: parseInt(form.quantity.value),
+            minRequired: parseInt(form.minRequired.value)
+        };
+
+        if (!newProduct.name || isNaN(newProduct.price) || isNaN(newProduct.quantity) || isNaN(newProduct.minRequired)) {
+            showToast('Please fill out all fields with valid numbers.', 'error');
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin text-xs"></i> Saving...`;
+
+        try {
+            const response = await fetch(API_PRODUCTS, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newProduct)
+            });
+
+            if (response.status === 201) {
+                const created = await response.json();
+                showToast(`Product "${created.name}" created successfully!`, 'success');
+                form.reset();
+                fetchProducts();
+                fetchOverallSummary();
+            } else {
+                showToast('Failed to add product. Check backend logs.', 'error');
+            }
+        } catch (error) {
+            showToast('Network error: Could not reach backend.', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fa-solid fa-plus text-xs"></i><span>Save to Inventory</span>`;
+        }
+    }
+
+    // 13. Restock Product Modal
     function openModal(productId, productName, currentQty) {
         document.getElementById('restockProductId').value = productId;
         document.getElementById('restockProductName').textContent = productName;
         document.getElementById('restockCurrentQty').textContent = currentQty;
-        document.getElementById('restockQuantity').value = ''; // Clear previous input
+        document.getElementById('restockProductSub').textContent = `Product ID #${productId}`;
+        document.getElementById('restockQuantity').value = '';
 
         const modal = document.getElementById('restockModal');
         modal.classList.remove('hidden');
         setTimeout(() => {
-            modal.classList.add('opacity-100');
-            modal.querySelector('.modal-content').style.transform = 'translateY(0)';
+            modal.classList.remove('opacity-0');
+            modal.querySelector('div').classList.remove('scale-95');
+            modal.querySelector('div').classList.add('scale-100');
+            document.getElementById('restockQuantity').focus();
         }, 10);
     }
 
     function closeModal() {
         const modal = document.getElementById('restockModal');
-        modal.classList.remove('opacity-100');
-        modal.querySelector('.modal-content').style.transform = 'translateY(-50px)';
-        setTimeout(() => {
-            modal.classList.add('hidden');
-        }, 300);
+        modal.classList.add('opacity-0');
+        modal.querySelector('div').classList.add('scale-95');
+        modal.querySelector('div').classList.remove('scale-100');
+        setTimeout(() => modal.classList.add('hidden'), 200);
     }
 
-    // --- NOTIFICATION DRAWER LOGIC (Restored) ---
-    function toggleNotifications() {
-        document.getElementById('notificationDrawer').classList.toggle('open');
-    }
-
-    function renderNotifications(lowStockItems) {
-        const list = document.getElementById('notificationList');
-        const badge = document.getElementById('notificationBadge');
-        const alertCount = document.getElementById('alertCount');
-        const noAlertsMsg = document.getElementById('noAlertsMsg');
-
-        // Update counts
-        const count = lowStockItems.length;
-        badge.textContent = count > 99 ? '99+' : count;
-        alertCount.textContent = count;
-
-        badge.classList.toggle('hidden', count === 0);
-        list.innerHTML = ''; // Clear previous list
-        noAlertsMsg.classList.toggle('hidden', count > 0);
-
-        if (count === 0) return;
-
-        lowStockItems.forEach(product => {
-            const item = document.createElement('div');
-            item.className = 'p-3 bg-yellow-50 border border-yellow-200 rounded-lg shadow-sm';
-            item.innerHTML = `
-                <p class="font-semibold text-yellow-800 text-sm">Low Stock: ${product.name}</p>
-                <p class="text-xs text-gray-700">ID: ${product.id} | Qty: ${product.quantity} / Min: ${product.minRequired}</p>
-            `;
-            list.appendChild(item);
-        });
-    }
-
-    function checkForLowStock(products) {
-        // Only check active products for alerts
-        const lowStockItems = products.filter(p => p.quantity <= p.minRequired && p.isActive);
-        renderNotifications(lowStockItems);
-    }
-
-    // --- API COMMUNICATION FUNCTIONS ---
-
-    async function fetchProducts() {
-        const tableBody = document.getElementById('productTableBody');
-        tableBody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-blue-500">Fetching data...</td></tr>';
-
-        try {
-            const response = await fetch(API_BASE_URL);
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-
-            const products = await response.json();
-            renderProducts(products);
-            checkForLowStock(products); // CHECK FOR LOW STOCK AFTER FETCH
-
-        } catch (error) {
-            showToast('An unexpected error occurred while fetching products.', 'error');
-            tableBody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-red-500">Network error. Check backend status.</td></tr>';
-        }
-    }
-
-    async function addProduct(product) {
-        try {
-            const response = await fetch(API_BASE_URL, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(product),
-            });
-
-            if (response.status === 201) {
-                const data = await response.json();
-                showToast(`Product ${data.name} added successfully (ID: ${data.id}).`, 'success');
-                return { success: true };
-            } else {
-                showToast('Failed to add product. Check server logs.', 'error');
-                return { success: false };
-            }
-
-        } catch (error) {
-            showToast('Network error: Could not connect to API.', 'error');
-            return { success: false };
-        }
-    }
-
-    async function updateStock(productId, quantityToAdd) {
-        try {
-            // Note: The API body is just the raw integer quantityToAdd
-            const response = await fetch(`${API_BASE_URL}/restock/${productId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(quantityToAdd),
-            });
-
-            if (response.status === 200) {
-                showToast(`Stock updated successfully. Added ${quantityToAdd} units.`, 'success');
-                return { success: true };
-            } else if (response.status === 404) {
-                 showToast(`Product ID ${productId} not found.`, 'error');
-                return { success: false };
-            } else {
-                showToast(`Restock failed. Status: ${response.status}`, 'error');
-                return { success: false };
-            }
-
-        } catch (error) {
-            showToast('Network error: Could not connect to API.', 'error');
-            return { success: false };
-        }
-    }
-
-
-    async function deactivateProduct(id) {
-        try {
-            const response = await fetch(`${API_BASE_URL}/${id}`, {
-                method: 'DELETE',
-            });
-
-            if (response.status === 204) {
-                showToast(`Product ID ${id} hidden from active inventory.`, 'success');
-                return { success: true };
-            } else if (response.status === 404) {
-                showToast(`Product ID ${id} not found.`, 'error');
-                return { success: false };
-            } else {
-                showToast(`Failed to hide product. Status: ${response.status}`, 'error');
-                return { success: false };
-            }
-        } catch (error) {
-            showToast('Network error: Could not connect to API.', 'error');
-            return { success: false };
-        }
-    }
-
-    // --- UI LOGIC ---
-
-    function renderProducts(products) {
-        const tableBody = document.getElementById('productTableBody');
-
-        if (products.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-gray-500">No products found.</td></tr>';
-            return;
-        }
-
-        tableBody.innerHTML = products.map(product => `
-            <tr class="${product.quantity < product.minRequired ? 'bg-red-50 hover:bg-red-100' : 'hover:bg-gray-50'} transition duration-100">
-                <td>${product.id}</td>
-                <td>${product.name}</td>
-                <td>₹${product.price.toFixed(2)}</td>
-                <td class="${product.quantity < product.minRequired ? 'text-red-600 font-semibold' : ''}">${product.quantity}</td>
-                <td>${product.minRequired}</td>
-                <td>${product.isActive ? 'Yes' : 'No'}</td>
-
-                <!-- NEW: Restock Button -->
-                <td>
-                    <button data-id="${product.id}"
-                            data-name="${product.name}"
-                            data-qty="${product.quantity}"
-                            class="restock-btn py-1 px-3 bg-indigo-500 text-white text-xs font-medium rounded-lg hover:bg-indigo-600 transition duration-150">
-                        Restock
-                    </button>
-                </td>
-
-                <td>
-                    <button data-id="${product.id}"
-                            class="delete-btn text-red-600 hover:text-red-900 font-medium transition duration-150 ${!product.isActive ? 'opacity-50 cursor-not-allowed' : ''}"
-                            ${!product.isActive ? 'disabled' : ''}>
-                        Delete
-                    </button>
-                </td>
-            </tr>
-        `).join('');
-    }
-
-    async function handleAddProduct(event) {
-        event.preventDefault();
-        const form = event.target;
-
-        const newProduct = {
-            name: form.name.value.trim(), price: parseFloat(form.price.value), quantity: parseInt(form.quantity.value), minRequired: parseInt(form.minRequired.value)
-        };
-
-        if (newProduct.name === '' || isNaN(newProduct.price) || isNaN(newProduct.quantity) || isNaN(newProduct.minRequired)) {
-            showToast('Please fill out all fields with valid numbers.', 'error');
-            return;
-        }
-
-        const result = await addProduct(newProduct);
-        if (result.success) {
-            form.reset();
-            fetchProducts();
-        }
-    }
-
-    async function handleDeactivateClick(event) {
-        if (event.target.classList.contains('delete-btn')) {
-            const productId = parseInt(event.target.dataset.id);
-
-            if (appConfirm(`Are you sure you want to DELETE/HIDE Product ID ${productId}? It will be removed from this list and the Cashier's view.`)) {
-
-                const result = await deactivateProduct(productId);
-
-                if (result.success) {
-                    fetchProducts();
-                }
-            }
-        }
+    function setRestockQty(amount) {
+        document.getElementById('restockQuantity').value = amount;
     }
 
     async function handleRestock(event) {
         event.preventDefault();
         const productId = document.getElementById('restockProductId').value;
-        const quantityInput = document.getElementById('restockQuantity');
-        const quantityToAdd = parseInt(quantityInput.value);
+        const quantityToAdd = parseInt(document.getElementById('restockQuantity').value);
 
         if (isNaN(quantityToAdd) || quantityToAdd <= 0) {
-            showToast('Please enter a valid quantity greater than zero.', 'error');
+            showToast('Please enter a valid restock quantity greater than 0.', 'error');
             return;
         }
 
-        const result = await updateStock(productId, quantityToAdd);
+        try {
+            const response = await fetch(`${API_PRODUCTS}/restock/${productId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(quantityToAdd)
+            });
 
-        if (result.success) {
-            closeModal();
-            fetchProducts();
+            if (response.status === 200) {
+                showToast(`Successfully restocked ${quantityToAdd} units!`, 'success');
+                closeModal();
+                fetchProducts();
+                fetchOverallSummary();
+                if (currentActiveTab === 'analytics') {
+                    runDemandAnalysis();
+                }
+            } else {
+                showToast('Restock failed.', 'error');
+            }
+        } catch (error) {
+            showToast('Network error during restock.', 'error');
         }
     }
 
-    // --- EVENT LISTENERS ---
+    // 14. Soft Delete / Deactivate Product
+    async function handleDeactivate(id, name) {
+        if (!confirm(`Are you sure you want to remove "${name}" from active warehouse inventory?`)) {
+            return;
+        }
 
-    document.addEventListener('DOMContentLoaded', () => {
-        fetchProducts();
-        document.getElementById('addProductForm').addEventListener('submit', handleAddProduct);
-        document.getElementById('productTableBody').addEventListener('click', (event) => {
-            // Check for Delete button click
-            if (event.target.classList.contains('delete-btn')) {
-                handleDeactivateClick(event);
+        try {
+            const response = await fetch(`${API_PRODUCTS}/${id}`, { method: 'DELETE' });
+            if (response.status === 204) {
+                showToast(`"${name}" removed from active inventory.`, 'success');
+                fetchProducts();
+                fetchOverallSummary();
+            } else {
+                showToast('Failed to deactivate product.', 'error');
             }
-            // Check for Restock button click
-            if (event.target.classList.contains('restock-btn')) {
-                const button = event.target;
-                const id = parseInt(button.dataset.id);
-                const name = button.dataset.name;
-                const qty = parseInt(button.dataset.qty);
-                openModal(id, name, qty);
-            }
-        });
+        } catch (error) {
+            showToast('Network error during deactivation.', 'error');
+        }
+    }
 
-        // Listener for the Restock Form submission inside the modal
-        document.getElementById('restockForm').addEventListener('submit', handleRestock);
+    // 15. Logout
+    function logout() {
+        window.location.href = '/login.html';
+    }
 
-        // Add a click listener to close the drawer if user clicks outside of it
-        document.addEventListener('click', (event) => {
-            const drawer = document.getElementById('notificationDrawer');
-            const bellButton = document.querySelector('.relative > button');
-            if (drawer && bellButton && drawer.classList.contains('open') && !drawer.contains(event.target) && !bellButton.contains(event.target)) {
-                drawer.classList.remove('open');
-            }
-        });
+    // 16. Utility Helpers
+    function formatCurrency(val) {
+        const num = Number(val) || 0;
+        return '₹' + num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function showToast(message, type = 'info', duration = 3500) {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+
+        const icons = {
+            success: 'fa-circle-check text-emerald-500',
+            error: 'fa-circle-xmark text-rose-500',
+            info: 'fa-circle-info text-brand-500'
+        };
+
+        toast.className = `flex items-center gap-2.5 px-4 py-3 bg-white border border-slate-200 rounded-xl shadow-xl text-xs font-semibold text-slate-800 transition-all duration-300 transform translate-y-3 opacity-0`;
+        toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.info} text-base"></i><span>${escapeHtml(message)}</span>`;
+
+        container.appendChild(toast);
+        setTimeout(() => toast.classList.remove('translate-y-3', 'opacity-0'), 10);
+        setTimeout(() => {
+            toast.classList.add('translate-y-3', 'opacity-0');
+            setTimeout(() => toast.remove(), 300);
+        }, duration);
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+
+    function escapeAttr(str) {
+        if (!str) return '';
+        return String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    }
+
+    // Close drawer when clicking outside
+    document.addEventListener('click', (event) => {
+        const drawer = document.getElementById('notificationDrawer');
+        const notifBtn = document.getElementById('notificationBtn');
+        if (drawer.classList.contains('open') && !drawer.contains(event.target) && !notifBtn.contains(event.target)) {
+            drawer.classList.remove('open');
+        }
     });
 
-    // --- UTILITIES ---
+    // 17. Initialization
+    document.addEventListener('DOMContentLoaded', () => {
+        // Set default month filter to current month
+        const currentMonth = new Date().getMonth() + 1;
+        const monthSelect = document.getElementById('filterMonth');
+        if (monthSelect) {
+            monthSelect.value = String(currentMonth);
+        }
 
-    function showToast(message, type = 'info', duration = 3000) {
-        const toastContainer = document.getElementById('toastContainer');
-        const colorMap = { 'success': 'bg-green-500', 'error': 'bg-red-500', 'info': 'bg-blue-500' };
-        const toast = document.createElement('div');
-        toast.className = `${colorMap[type]} text-white px-4 py-2 rounded-lg shadow-xl transition-opacity duration-300 opacity-0 max-w-xs`;
-        toast.textContent = message;
-        toastContainer.appendChild(toast);
-        setTimeout(() => toast.classList.remove('opacity-0'), 10);
-        setTimeout(() => { toast.classList.add('opacity-0'); toast.addEventListener('transitionend', () => toast.remove()); }, duration);
-    }
+        // Fetch initial data
+        fetchProducts();
+        fetchOverallSummary();
 
-    function appConfirm(message) {
-        return window.confirm(message);
-    }
-
+        // Form bindings
+        document.getElementById('addProductForm').addEventListener('submit', handleAddProduct);
+        document.getElementById('restockForm').addEventListener('submit', handleRestock);
+    });
 </script>
 </body>
 </html>

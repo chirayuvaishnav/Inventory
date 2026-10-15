@@ -4,9 +4,7 @@ import com.inventory.dto.BillDto;
 import com.inventory.dto.BillItemDto;
 import com.inventory.model.DBConnection;
 import com.inventory.dto.ProductDto;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -21,7 +19,6 @@ import java.util.List;
  * Uses @Transactional to ensure stock updates and bill recording are atomic (succeed or fail together).
  */
 @Service
-@RequiredArgsConstructor
 public class CashierService {
 
     /**
@@ -55,12 +52,11 @@ public class CashierService {
 
 
     /**
-     * Processes a new sale (bill). This method is transactional, ensuring
+     * Processes a new sale (bill). This method manually manages transactions, ensuring
      * inventory updates and bill recording succeed or fail together.
      * @param billDto The DTO containing the list of items to be purchased.
      * @return The completed BillDto with the generated billId and total.
      */
-    @Transactional
     public BillDto processSale(BillDto billDto) {
         if (billDto.getItems() == null || billDto.getItems().isEmpty()) {
             throw new IllegalArgumentException("Bill must contain at least one item.");

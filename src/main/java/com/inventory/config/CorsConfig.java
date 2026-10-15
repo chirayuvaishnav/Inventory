@@ -13,12 +13,10 @@ public class CorsConfig implements WebMvcConfigurer {
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        // Allows all origins, all methods, and all headers to access the API.
-        // This is necessary because Spring Boot serves static files and the API
-        // might sometimes be seen by the browser as two different contexts.
-        registry.addMapping("/api/**")
-                .allowedOrigins("http://localhost:8080", "http://127.0.0.1:8080")
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+        // Allows localhost and cloud deployment origins (e.g. *.onrender.com)
+        registry.addMapping("/**")
+                .allowedOriginPatterns("*")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD")
                 .allowedHeaders("*")
                 .allowCredentials(true);
     }

@@ -29,7 +29,6 @@ package com.inventory.service;
 
 import com.inventory.model.DBConnection;
 import com.inventory.dto.UserDto;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -41,7 +40,6 @@ import java.sql.SQLException;
  * It queries the 'users' table directly.
  */
 @Service
-@RequiredArgsConstructor
 public class AuthService {
 
     // Note: In a real-world application, passwords would be hashed (e.g., using BCrypt),

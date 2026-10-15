@@ -2,6 +2,7 @@
 /target/
 # IntelliJ idea files
 .idea/
+.vscode/
 # Maven wrapper files
 .mvn/wrapper/
 # Log files

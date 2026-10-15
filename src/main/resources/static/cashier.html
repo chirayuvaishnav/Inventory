@@ -3,156 +3,389 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventory Cashier POS</title>
-    <!-- Load Tailwind CSS -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>IMS | Point of Sale (POS) Cashier</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        pos: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
         body { font-family: 'Inter', sans-serif; }
-        .product-list { max-height: 250px; overflow-y: auto; }
-        .table-item-row:hover { background-color: #f7fafc; }
-        .low-stock { color: #ef4444; font-weight: 600; }
-        /* Style for the fixed notification drawer */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: #f8fafc; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
         #notificationDrawer {
-            top: 60px;
-            right: 0;
-            width: 350px;
-            max-height: 80vh;
-            overflow-y: auto;
             transform: translateX(100%);
-            transition: transform 0.3s ease-out;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
         #notificationDrawer.open {
             transform: translateX(0);
         }
+
+        /* Print styles for thermal / standard receipt */
+        @media print {
+            /* Hide surrounding layout */
+            header, main, #notificationDrawer, .no-print {
+                display: none !important;
+            }
+            body {
+                background: white !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            /* Reset modal fixed positioning so content prints cleanly */
+            #receiptModal {
+                position: static !important;
+                display: block !important;
+                opacity: 1 !important;
+                visibility: visible !important;
+                background: white !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                transform: none !important;
+            }
+            #receiptModal > div {
+                box-shadow: none !important;
+                border: none !important;
+                max-width: 100% !important;
+                width: 100% !important;
+                transform: none !important;
+                overflow: visible !important;
+            }
+            #printableReceipt {
+                display: block !important;
+                visibility: visible !important;
+                width: 100% !important;
+                max-width: 80mm !important;
+                margin: 0 auto !important;
+                padding: 10px !important;
+                color: black !important;
+            }
+            #printableReceipt * {
+                visibility: visible !important;
+                color: black !important;
+            }
+        }
     </style>
 </head>
-<body class="min-h-screen bg-gray-100">
+<body class="bg-slate-100 min-h-screen text-slate-800 flex flex-col antialiased">
 
-<!-- Navigation Bar -->
-<nav class="bg-white shadow-md p-4 sticky top-0 z-20">
-    <div class="max-w-7xl mx-auto flex justify-between items-center">
-        <span class="text-xl font-bold text-green-700">IMS Cashier</span>
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+        
+        <!-- Left: Logo & POS Tag -->
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-md shadow-emerald-500/20">
+                <i class="fa-solid fa-cash-register text-lg"></i>
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="font-extrabold text-slate-900 tracking-tight text-lg">StockFlow</span>
+                    <span class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">POS Register</span>
+                </div>
+                <p class="text-xs text-slate-400 hidden sm:block">Point-of-Sale Terminal</p>
+            </div>
+        </div>
 
-        <div class="flex items-center space-x-4">
-            <!-- NEW: Notification Button -->
-            <div class="relative">
-                <button onclick="toggleNotifications()" class="p-2 rounded-full text-gray-500 hover:bg-gray-100 hover:text-green-600 transition duration-150">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.447 6.315 6 8.188 6 11v3.159c0 .538-.214 1.055-.595 1.405L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                    <!-- Badge Counter -->
-                    <span id="notificationBadge" class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">
-                        0
-                    </span>
-                </button>
+        <!-- Center: Live Clock (Desktop) -->
+        <div class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200/80 text-xs font-medium text-slate-600">
+            <i class="fa-regular fa-clock text-slate-400"></i>
+            <span id="liveClock">Loading time...</span>
+        </div>
+
+        <!-- Right: Actions, Notifications & User -->
+        <div class="flex items-center gap-3 sm:gap-4">
+            
+            <!-- Low-Stock Alert Button -->
+            <button onclick="toggleNotifications()" id="notificationBtn" class="relative p-2.5 rounded-xl text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition duration-150 focus:outline-none" title="Low Stock Alerts">
+                <i class="fa-regular fa-bell text-lg"></i>
+                <span id="notificationBadge" class="hidden absolute top-1.5 right-1.5 min-w-[18px] h-[18px] flex items-center justify-center px-1 text-[10px] font-bold text-white bg-rose-500 rounded-full ring-2 ring-white animate-pulse">
+                    0
+                </span>
+            </button>
+
+            <!-- Divider -->
+            <div class="h-6 w-px bg-slate-200 hidden sm:block"></div>
+
+            <!-- Cashier User Badge -->
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-full bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-700 font-bold text-xs">
+                    CS
+                </div>
+                <div class="hidden sm:block text-left">
+                    <p class="text-xs font-semibold text-slate-800 leading-none">Register #1</p>
+                    <p class="text-[10px] text-emerald-600 font-medium flex items-center gap-1 mt-0.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span> Active
+                    </p>
+                </div>
             </div>
 
-            <!-- Log Out Button -->
-            <button onclick="logout()" class="flex items-center space-x-1 text-sm font-medium text-red-600 hover:text-red-800 transition duration-150">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3v-4a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                <span>Log Out</span>
+            <!-- Logout Button -->
+            <button onclick="logout()" class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition duration-150" title="Log Out">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                <span class="hidden sm:inline">Logout</span>
             </button>
         </div>
     </div>
-</nav>
+</header>
 
-<!-- NEW: Notification Drawer -->
-<div id="notificationDrawer" class="fixed bg-white shadow-2xl z-40 p-5 border-l border-gray-200">
-    <h3 class="text-lg font-bold text-gray-800 mb-3 border-b pb-2">Low Stock Alerts (<span id="alertCount">0</span>)</h3>
-    <div id="notificationList" class="space-y-4">
-        <!-- Notification items are inserted here by JS -->
-    </div>
-    <p id="noAlertsMsg" class="text-gray-500 text-sm mt-4 hidden">No low stock alerts right now. Inventory looks good!</p>
-</div>
-
-<!-- Main Content Container -->
-<div class="max-w-7xl mx-auto p-4 md:p-8">
-    <header class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900">Cashier Point of Sale (POS)</h1>
-        <p class="text-gray-500">Process sales and manage inventory transactions.</p>
-    </header>
-
-    <!-- Main POS Grid: Product List & Cart -->
-    <div class="grid grid-cols-1 lg:col-span-3 gap-8">
-
-        <div class="lg:col-span-2 space-y-8">
-
-            <div class="bg-white p-6 rounded-xl shadow-lg">
-                <h2 class="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">Add Item to Bill</h2>
-                <form id="productInputForm" class="grid grid-cols-1 sm:grid-cols-5 gap-4">
-                    <div class="sm:col-span-2">
-                        <label for="productId" class="block text-sm font-medium text-gray-700">Product ID</label>
-                        <input type="number" id="productId" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border" placeholder="e.g., 1">
+<!-- Main POS Split View -->
+<main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- Left Column: Product Catalog & Quick Input (7 Cols) -->
+        <div class="lg:col-span-7 space-y-5">
+            
+            <!-- Quick Barcode / Product ID Input Card -->
+            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-4 sm:p-5">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                        <i class="fa-solid fa-barcode text-slate-400"></i>
+                        <span>Quick Barcode / ID Entry</span>
+                    </h2>
+                    <span class="text-[11px] text-slate-400">Scanner or Keypad Ready</span>
+                </div>
+                <form id="productInputForm" class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+                    <div class="sm:col-span-6">
+                        <label for="productId" class="block text-xs font-semibold text-slate-700 mb-1">Product ID</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs">
+                                #
+                            </span>
+                            <input type="number" id="productId" required min="1" placeholder="Scan or enter ID (e.g. 3)"
+                                   class="w-full pl-8 pr-3 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition duration-150">
+                        </div>
                     </div>
-                    <div>
-                        <label for="quantity" class="block text-sm font-medium text-gray-700">Quantity</label>
-                        <input type="number" id="quantity" required min="1" value="1" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
+
+                    <div class="sm:col-span-3">
+                        <label for="quantity" class="block text-xs font-semibold text-slate-700 mb-1">Quantity</label>
+                        <input type="number" id="quantity" required min="1" value="1"
+                               class="w-full px-3 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition duration-150">
                     </div>
-                    <div class="sm:col-span-2 flex items-end">
-                        <button type="submit" class="w-full py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">
-                            Add to Bill
+
+                    <div class="sm:col-span-3">
+                        <button type="submit"
+                                class="w-full py-2.5 px-4 rounded-xl text-white font-semibold text-sm bg-slate-900 hover:bg-slate-800 shadow-sm transition duration-150 flex items-center justify-center gap-1.5 cursor-pointer">
+                            <i class="fa-solid fa-cart-plus text-xs"></i>
+                            <span>Add Item</span>
                         </button>
                     </div>
                 </form>
             </div>
 
-            <div class="bg-white p-6 rounded-xl shadow-lg">
-                <h2 class="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">Active Inventory List (Available for Sale)</h2>
-                <div class="table-container product-list overflow-x-auto rounded-lg shadow-md border border-gray-200">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50 sticky top-0">
-                        <tr>
-                            <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">ID</th>
-                            <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Name</th>
-                            <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Price</th>
-                            <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Stock</th>
-                        </tr>
-                        </thead>
-                        <tbody id="activeProductTableBody" class="bg-white divide-y divide-gray-200">
-                        <tr><td colspan="4" class="text-center py-4 text-gray-500">Loading active products...</td></tr>
-                        </tbody>
-                    </table>
+            <!-- Catalog Search & Card Grid -->
+            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-4 sm:p-5">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                    <div>
+                        <h2 class="text-base font-bold text-slate-900">Available Products</h2>
+                        <p class="text-xs text-slate-400" id="catalogSubtext">Click any item to add to current bill</p>
+                    </div>
+
+                    <!-- Search Input -->
+                    <div class="relative sm:w-60">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                            <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                        </span>
+                        <input type="text" id="catalogSearch" oninput="handleCatalogSearch()" placeholder="Search catalog..."
+                               class="w-full pl-8 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition duration-150">
+                    </div>
+                </div>
+
+                <!-- Product Grid (Cards) -->
+                <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[500px] overflow-y-auto pr-1">
+                    <!-- Cards injected via JS -->
+                    <div class="col-span-2 py-12 text-center text-slate-400">
+                        <i class="fa-solid fa-circle-notch fa-spin text-xl text-emerald-500 mb-2"></i>
+                        <p class="text-xs">Loading available products...</p>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="lg:col-span-1 space-y-6">
-            <div class="bg-white p-6 rounded-xl shadow-lg h-full flex flex-col">
-                <h2 class="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">Current Bill</h2>
-
-                <div class="flex-grow overflow-y-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50 sticky top-0">
-                        <tr>
-                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase text-gray-500">Item</th>
-                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase text-gray-500">Qty</th>
-                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase text-gray-500">Subtotal</th>
-                            <th class="px-3 py-2"></th>
-                        </tr>
-                        </thead>
-                        <tbody id="billItemsTableBody" class="bg-white divide-y divide-gray-200">
-                        <tr><td colspan="4" class="text-center py-4 text-gray-400">Bill is empty.</td></tr>
-                        </tbody>
-                    </table>
+        <!-- Right Column: Current Bill & Checkout Summary (5 Cols) -->
+        <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sticky top-24 overflow-hidden">
+            
+            <!-- Cart Header -->
+            <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-receipt text-sm"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-base font-bold text-slate-900">Current Sale</h2>
+                        <p class="text-xs text-slate-400" id="cartItemCount">0 items in cart</p>
+                    </div>
                 </div>
 
-                <div class="mt-4 pt-4 border-t border-gray-200">
-                    <div class="flex justify-between font-semibold text-lg text-gray-800">
-                        <span>Total Amount:</span>
-                        <span id="billTotal">₹0.00</span>
-                    </div>
-                    <button id="finalizeSaleBtn" disabled class="mt-4 w-full py-3 px-4 rounded-lg text-white bg-green-600 hover:bg-green-700 transition duration-150 ease-in-out disabled:bg-gray-400 disabled:cursor-not-allowed">Finalize Sale</button>
-                    <button id="resetBillBtn" class="mt-2 w-full py-3 px-4 rounded-lg text-white bg-red-500 hover:bg-red-600 transition duration-150 ease-in-out">Clear Bill</button>
+                <!-- Reset / Clear Bill -->
+                <button type="button" onclick="resetBill()" id="resetBillBtn"
+                        class="text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 px-2.5 py-1.5 rounded-lg transition duration-150 cursor-pointer flex items-center gap-1">
+                    <i class="fa-regular fa-trash-can text-[11px]"></i>
+                    <span>Clear</span>
+                </button>
+            </div>
+
+            <!-- Cart Items List Container -->
+            <div class="p-4 sm:p-5 flex-grow overflow-y-auto min-h-[280px] max-h-[380px] space-y-2.5" id="cartItemsList">
+                <!-- Cart items rendered here via JS -->
+                <div class="h-full py-16 text-center text-slate-300 flex flex-col items-center justify-center">
+                    <i class="fa-solid fa-cart-shopping text-4xl mb-3 text-slate-200"></i>
+                    <p class="text-sm font-semibold text-slate-600">The bill is currently empty</p>
+                    <p class="text-xs text-slate-400 mt-0.5">Click an item from the left or scan product ID</p>
                 </div>
             </div>
+
+            <!-- Cost Summary & Checkout -->
+            <div class="p-5 border-t border-slate-100 bg-slate-50/70 space-y-3">
+                <div class="flex items-center justify-between text-xs text-slate-500">
+                    <span>Subtotal:</span>
+                    <span id="billSubtotal" class="font-semibold text-slate-800">₹0.00</span>
+                </div>
+                <div class="flex items-center justify-between text-xs text-slate-500">
+                    <span>Taxes & Cess (Included):</span>
+                    <span class="font-semibold text-slate-800">₹0.00</span>
+                </div>
+                <div class="pt-2 border-t border-slate-200/80 flex items-baseline justify-between">
+                    <span class="text-sm font-bold text-slate-900">Total Due:</span>
+                    <span id="billTotal" class="text-2xl font-black text-slate-900">₹0.00</span>
+                </div>
+
+                <!-- Finalize Sale Button -->
+                <button id="finalizeSaleBtn" onclick="handleFinalizeSale()" disabled
+                        class="w-full mt-3 py-3.5 px-4 rounded-xl text-white font-bold text-sm bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-md shadow-emerald-500/20 disabled:from-slate-300 disabled:to-slate-300 disabled:text-slate-500 disabled:shadow-none disabled:cursor-not-allowed transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <span>Finalize Sale & Print Bill</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Printable Receipt Modal -->
+<div id="receiptModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs hidden opacity-0 transition-opacity duration-200">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-sm overflow-hidden transform scale-95 transition-all duration-200 flex flex-col">
+        
+        <!-- Receipt Content (This part prints cleanly) -->
+        <div id="printableReceipt" class="p-6 font-mono text-xs text-slate-800 space-y-4 bg-white">
+            <!-- Header -->
+            <div class="text-center border-b border-dashed border-slate-300 pb-4">
+                <h3 class="font-bold text-base tracking-wider uppercase text-slate-900">StockFlow Supermart</h3>
+                <p class="text-[10px] text-slate-500">123 Retail Avenue, Tech City</p>
+                <p class="text-[10px] text-slate-500">GSTIN: 27AABCU9603R1ZM</p>
+                <div class="mt-2 pt-2 border-t border-slate-100 flex justify-between text-[10px] text-slate-500">
+                    <span>Receipt: <strong id="receiptBillId" class="text-slate-800">#--</strong></span>
+                    <span id="receiptDate">--</span>
+                </div>
+            </div>
+
+            <!-- Itemized Table -->
+            <div>
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="border-b border-dashed border-slate-300 text-[10px] font-bold text-slate-500">
+                            <th class="py-1">Item</th>
+                            <th class="py-1 text-center">Qty</th>
+                            <th class="py-1 text-right">Price</th>
+                            <th class="py-1 text-right">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="receiptItemsBody" class="divide-y divide-dotted divide-slate-200">
+                        <!-- Injected by JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Totals -->
+            <div class="border-t border-dashed border-slate-300 pt-3 space-y-1">
+                <div class="flex justify-between font-bold text-sm text-slate-900 pt-1">
+                    <span>Total Paid:</span>
+                    <span id="receiptTotal">₹0.00</span>
+                </div>
+                <div class="flex justify-between text-[10px] text-slate-500">
+                    <span>Payment Mode:</span>
+                    <span>CASH / POS</span>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="text-center border-t border-dashed border-slate-300 pt-3 text-[10px] text-slate-500">
+                <p class="font-semibold text-slate-700">Thank you for your purchase!</p>
+                <p class="text-[9px]">Please retain receipt for exchanges within 7 days.</p>
+            </div>
+        </div>
+
+        <!-- Receipt Modal Actions (Hidden in Print) -->
+        <div class="p-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between gap-3 no-print">
+            <button type="button" onclick="closeReceiptModal()" class="w-1/2 py-2.5 px-3 text-xs font-semibold text-slate-600 hover:bg-slate-200 rounded-xl transition">
+                Close & Next
+            </button>
+            <button type="button" onclick="printReceipt()" class="w-1/2 py-2.5 px-3 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-xs transition flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-print"></i>
+                <span>Print Receipt</span>
+            </button>
         </div>
     </div>
 </div>
 
-<!-- Toast Notification Container -->
-<div id="toastContainer" class="fixed bottom-4 right-4 space-y-2 z-50"></div>
+<!-- Low Stock Notification Slide-over Drawer -->
+<div id="notificationDrawer" class="fixed top-16 right-0 bottom-0 w-80 sm:w-96 bg-white border-l border-slate-200 shadow-2xl z-40 flex flex-col">
+    <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+        <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
+            <h3 class="font-bold text-slate-800 text-sm">Low Stock Alerts (<span id="alertCount">0</span>)</h3>
+        </div>
+        <button onclick="toggleNotifications()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-200/50 transition">
+            <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+    </div>
 
+    <div id="notificationList" class="flex-grow overflow-y-auto p-4 space-y-3">
+        <!-- Injected by JS -->
+    </div>
+
+    <div id="noAlertsMsg" class="hidden p-8 text-center flex-grow flex flex-col items-center justify-center">
+        <div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center text-xl mb-3">
+            <i class="fa-solid fa-shield-check"></i>
+        </div>
+        <p class="font-semibold text-slate-800 text-sm">All Inventory Healthy</p>
+        <p class="text-xs text-slate-400 mt-1">Sufficient stock available for all products.</p>
+    </div>
+</div>
+
+<!-- Toast Notification Container -->
+<div id="toastContainer" class="fixed bottom-5 right-5 space-y-2 z-50"></div>
+
+<!-- JavaScript Logic -->
 <script>
-<!--    const API_BASE_URL = 'http://localhost:8080/api/cashier'; -->
     const API_BASE_URL = '/api/cashier';
     let activeProducts = [];
     let currentBill = { items: [], totalAmount: 0.0 };
@@ -161,275 +394,550 @@
         window.location.href = 'login.html';
     }
 
-    // --- NOTIFICATION DRAWER LOGIC ---
+    // Live Clock
+    function updateClock() {
+        const clockEl = document.getElementById('liveClock');
+        if (clockEl) {
+            const now = new Date();
+            clockEl.textContent = now.toLocaleDateString('en-IN', { weekday: 'short', month: 'short', day: 'numeric' }) + 
+                                  ' • ' + now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
 
+    // Drawer Control
     function toggleNotifications() {
         document.getElementById('notificationDrawer').classList.toggle('open');
     }
 
-    function renderNotifications(lowStockItems) {
-        const list = document.getElementById('notificationList');
+    function renderLowStockNotifications(products) {
+        const lowStockItems = products.filter(p => p.quantity <= p.minRequired);
         const badge = document.getElementById('notificationBadge');
         const alertCount = document.getElementById('alertCount');
-        const noAlertsMsg = document.getElementById('noAlertsMsg');
+        const list = document.getElementById('notificationList');
+        const noAlerts = document.getElementById('noAlertsMsg');
 
-        // Update counts
         const count = lowStockItems.length;
-        badge.textContent = count > 99 ? '99+' : count;
         alertCount.textContent = count;
 
-        badge.classList.toggle('hidden', count === 0);
-        list.innerHTML = ''; // Clear previous list
-        noAlertsMsg.classList.toggle('hidden', count > 0);
+        if (count > 0) {
+            badge.textContent = count > 99 ? '99+' : count;
+            badge.classList.remove('hidden');
+            noAlerts.classList.add('hidden');
+            list.classList.remove('hidden');
 
-        if (count === 0) return;
-
-        lowStockItems.forEach(product => {
-            const item = document.createElement('div');
-            item.className = 'p-3 bg-yellow-50 border border-yellow-200 rounded-lg shadow-sm';
-            item.innerHTML = `
-                <p class="font-semibold text-yellow-800 text-sm">Low Stock: ${product.name}</p>
-                <p class="text-xs text-gray-700">ID: ${product.id} | Qty: ${product.quantity} / Min: ${product.minRequired}</p>
-            `;
-            list.appendChild(item);
-        });
+            list.innerHTML = lowStockItems.map(p => `
+                <div class="p-3 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-between">
+                    <div>
+                        <p class="font-bold text-xs text-amber-900">${escapeHtml(p.name)}</p>
+                        <p class="text-[11px] text-amber-700">Available: <strong>${p.quantity}</strong> / Min: ${p.minRequired}</p>
+                    </div>
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-200 text-amber-800">Critical</span>
+                </div>
+            `).join('');
+        } else {
+            badge.classList.add('hidden');
+            noAlerts.classList.remove('hidden');
+            list.classList.add('hidden');
+        }
     }
 
-    function checkForLowStock(products) {
-        const lowStockItems = products.filter(p => p.quantity <= p.minRequired && p.isActive);
-        renderNotifications(lowStockItems);
-    }
-
-    // --- API FUNCTIONS ---
-
+    // API: Fetch Active Products
     async function fetchActiveProducts() {
-        const tableBody = document.getElementById('activeProductTableBody');
-        tableBody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-blue-500">Loading inventory...</td></tr>';
+        const grid = document.getElementById('productGrid');
+        grid.innerHTML = `
+            <div class="col-span-2 py-12 text-center text-slate-400">
+                <i class="fa-solid fa-circle-notch fa-spin text-xl text-emerald-500 mb-2"></i>
+                <p class="text-xs">Loading available products...</p>
+            </div>`;
 
         try {
             const response = await fetch(`${API_BASE_URL}/products`);
-            if (!response.ok) throw new Error('Failed to fetch products: ' + response.statusText);
-            const products = await response.json();
-
-            activeProducts = products;
-            renderActiveProducts();
-            checkForLowStock(activeProducts); // CRITICAL: Check stock after fetching
+            if (!response.ok) throw new Error('Failed to fetch products');
+            
+            activeProducts = await response.json();
+            renderCatalog(getFilteredCatalog());
+            renderLowStockNotifications(activeProducts);
 
         } catch (error) {
-            showToast('Error loading active inventory.', 'error');
-            tableBody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-red-500">Error loading inventory.</td></tr>';
+            console.error(error);
+            showToast('Error loading active products.', 'error');
+            grid.innerHTML = `
+                <div class="col-span-2 py-12 text-center text-rose-500">
+                    <i class="fa-solid fa-triangle-exclamation text-xl mb-2"></i>
+                    <p class="text-xs font-semibold">Failed to load catalog</p>
+                </div>`;
         }
     }
 
-    async function finalizeSale(billDto) {
-        try {
-            const response = await fetch(`${API_BASE_URL}/bills`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(billDto)
-            });
-
-            if (response.status === 201) {
-                const data = await response.json();
-                showToast(`Sale successful! Bill ID: ${data.billId}. Total: ₹${data.totalAmount.toFixed(2)}`, 'success', 6000);
-                resetBill(false);
-                fetchActiveProducts(); // Triggers check for new low stock alerts
-            } else if (response.status === 400) {
-                const errorBody = await response.text();
-                showToast(`Sale failed: ${errorBody || 'Insufficient stock or invalid data.'}`, 'error', 5000);
-            } else {
-                showToast(`Sale failed. Status: ${response.status}`, 'error');
-            }
-            return response.ok;
-        } catch (error) {
-            showToast('Network error: Could not connect to API.', 'error');
-            return false;
-        }
+    // Filter catalog
+    function getFilteredCatalog() {
+        const query = document.getElementById('catalogSearch').value.trim().toLowerCase();
+        return activeProducts.filter(p => {
+            return p.name.toLowerCase().includes(query) || String(p.id).includes(query);
+        });
     }
 
-    // --- LOCAL LOGIC & RENDERING ---
+    function handleCatalogSearch() {
+        renderCatalog(getFilteredCatalog());
+    }
 
-    function renderActiveProducts() {
-        const tableBody = document.getElementById('activeProductTableBody');
-        if (activeProducts.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-gray-500">No active products with stock.</td></tr>';
+    // Render Product Cards
+    function renderCatalog(products) {
+        const grid = document.getElementById('productGrid');
+        const subtext = document.getElementById('catalogSubtext');
+        subtext.textContent = `${products.length} products available for sale`;
+
+        if (products.length === 0) {
+            grid.innerHTML = `
+                <div class="col-span-2 py-12 text-center text-slate-400">
+                    <i class="fa-solid fa-box-open text-2xl mb-2 text-slate-300"></i>
+                    <p class="text-xs font-semibold text-slate-600">No active products match search</p>
+                </div>`;
             return;
         }
 
-        tableBody.innerHTML = activeProducts.map(product => `
-            <tr class="${product.quantity <= product.minRequired ? 'bg-yellow-50 hover:bg-yellow-100' : 'hover:bg-gray-50'} transition duration-100">
-                <td class="px-4 py-2 text-sm text-gray-800">${product.id}</td>
-                <td class="px-4 py-2 text-sm text-gray-800">${product.name}</td>
-                <td class="px-4 py-2 text-sm text-gray-800">₹${product.price.toFixed(2)}</td>
-                <td class="px-4 py-2 text-sm ${product.quantity <= product.minRequired ? 'low-stock' : 'text-gray-800'}">
-                    ${product.quantity}
-                </td>
-            </tr>
-        `).join('');
+        grid.innerHTML = products.map(product => {
+            const isLow = product.quantity <= product.minRequired;
+            return `
+                <div onclick="addSingleProduct(${product.id})"
+                     class="group p-3.5 rounded-xl border border-slate-200/90 hover:border-emerald-500/50 bg-white hover:bg-emerald-50/20 shadow-2xs hover:shadow-md transition-all duration-150 flex flex-col justify-between cursor-pointer">
+                    <div class="flex items-start justify-between gap-2">
+                        <div>
+                            <span class="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">#${product.id}</span>
+                            <h3 class="font-bold text-sm text-slate-800 group-hover:text-emerald-700 transition mt-1 line-clamp-1">${escapeHtml(product.name)}</h3>
+                        </div>
+                        <span class="text-xs font-bold px-2 py-0.5 rounded-full ${isLow ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-600'}">
+                            ${product.quantity} in stock
+                        </span>
+                    </div>
+
+                    <div class="mt-3.5 pt-2.5 border-t border-slate-100 flex items-center justify-between">
+                        <span class="text-base font-black text-slate-900">₹${product.price.toFixed(2)}</span>
+                        <button type="button" onclick="event.stopPropagation(); addSingleProduct(${product.id})"
+                                class="px-2.5 py-1 text-xs font-bold rounded-lg bg-emerald-50 text-emerald-700 group-hover:bg-emerald-600 group-hover:text-white transition duration-150 flex items-center gap-1">
+                            <i class="fa-solid fa-plus text-[10px]"></i>
+                            <span>Add</span>
+                        </button>
+                    </div>
+                </div>`;
+        }).join('');
     }
 
-    function renderBillItems() {
-        const tableBody = document.getElementById('billItemsTableBody');
-        const totalElement = document.getElementById('billTotal');
-
-        currentBill.totalAmount = currentBill.items.reduce((sum, item) => sum + item.subtotal, 0);
-        totalElement.textContent = `₹${currentBill.totalAmount.toFixed(2)}`;
-
-        document.getElementById('finalizeSaleBtn').disabled = currentBill.items.length === 0;
-
-        if (currentBill.items.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-gray-400">Bill is empty.</td></tr>';
+    // Add item by quick click on card
+    function addSingleProduct(productId) {
+        const product = activeProducts.find(p => p.id === productId);
+        if (!product || product.quantity <= 0) {
+            showToast('Item is out of stock.', 'error');
             return;
         }
-
-        tableBody.innerHTML = currentBill.items.map((item, index) => `
-            <tr class="table-item-row">
-                <td class="px-3 py-2 text-sm text-gray-800">${item.productName}</td>
-                <td class="px-3 py-2 text-sm text-gray-800">${item.quantity}</td>
-                <td class="px-3 py-2 text-sm text-gray-800">₹${item.subtotal.toFixed(2)}</td>
-                <td class="px-3 py-2">
-                    <button data-index="${index}" class="remove-item-btn text-red-500 hover:text-red-700 font-medium text-xs">Remove</button>
-                </td>
-            </tr>
-        `).join('');
+        addItemToCart(product, 1);
     }
 
-    function handleAddItemToBill(event) {
+    // Add item by manual form
+    function handleManualAdd(event) {
         event.preventDefault();
         const form = event.target;
-
         const productId = parseInt(form.productId.value);
         const quantity = parseInt(form.quantity.value);
 
         if (isNaN(productId) || isNaN(quantity) || quantity <= 0) {
-            showToast('Please enter a valid Product ID and Quantity.', 'error');
+            showToast('Please enter valid product ID and quantity.', 'error');
             return;
         }
 
         const product = activeProducts.find(p => p.id === productId);
-
         if (!product || product.quantity <= 0) {
-            showToast(`Product ID ${productId} not found or out of stock.`, 'error');
+            showToast(`Product #${productId} not found or out of stock.`, 'error');
             return;
         }
 
         if (product.quantity < quantity) {
-            showToast(`Insufficient stock! Only ${product.quantity} of ${product.name} available.`, 'error');
+            showToast(`Only ${product.quantity} units of ${product.name} available.`, 'error');
             return;
         }
 
-        const existingItemIndex = currentBill.items.findIndex(item => item.productId === productId);
+        addItemToCart(product, quantity);
+        form.productId.value = '';
+        form.quantity.value = '1';
+        document.getElementById('productId').focus();
+    }
 
-        if (existingItemIndex !== -1) {
-            const existingItem = currentBill.items[existingItemIndex];
-            const newQuantity = existingItem.quantity + quantity;
+    // Core Cart Logic
+    function addItemToCart(product, qtyToAdd) {
+        const existingIndex = currentBill.items.findIndex(item => item.productId === product.id);
 
-            if (product.quantity < newQuantity) {
-                showToast(`Cannot add that many. Total requested (${newQuantity}) exceeds stock (${product.quantity}).`, 'error');
+        if (existingIndex !== -1) {
+            const item = currentBill.items[existingIndex];
+            if (product.quantity < qtyToAdd) {
+                showToast(`Cannot add more. Insufficient warehouse stock.`, 'error');
                 return;
             }
-
-            existingItem.quantity = newQuantity;
-            existingItem.subtotal = newQuantity * product.price;
+            item.quantity += qtyToAdd;
+            item.subtotal = item.quantity * item.price;
         } else {
-            const subtotal = quantity * product.price;
-            const newItem = {
-                productId: productId, productName: product.name, quantity: quantity, price: product.price, subtotal: subtotal
-            };
-            currentBill.items.push(newItem);
+            currentBill.items.push({
+                productId: product.id,
+                productName: product.name,
+                price: product.price,
+                quantity: qtyToAdd,
+                subtotal: product.price * qtyToAdd
+            });
         }
 
-        product.quantity -= quantity;
+        // Deduct from local available display
+        product.quantity -= qtyToAdd;
 
-        form.reset();
-        renderBillItems();
-        renderActiveProducts();
+        renderCart();
+        renderCatalog(getFilteredCatalog());
     }
 
-    function handleRemoveItem(event) {
-        if (event.target.classList.contains('remove-item-btn')) {
-            const index = parseInt(event.target.dataset.index);
+    function updateCartItemQty(index, change) {
+        const item = currentBill.items[index];
+        const product = activeProducts.find(p => p.id === item.productId);
 
-            const itemToRemove = currentBill.items[index];
-            const product = activeProducts.find(p => p.id === itemToRemove.productId);
-
-            if (product) {
-                product.quantity += itemToRemove.quantity;
+        if (change > 0) {
+            if (!product || product.quantity <= 0) {
+                showToast('No more stock available to add.', 'error');
+                return;
             }
-
-            currentBill.items.splice(index, 1);
-
-            renderBillItems();
-            renderActiveProducts();
+            item.quantity += 1;
+            item.subtotal = item.quantity * item.price;
+            product.quantity -= 1;
+        } else if (change < 0) {
+            if (item.quantity > 1) {
+                item.quantity -= 1;
+                item.subtotal = item.quantity * item.price;
+                if (product) product.quantity += 1;
+            } else {
+                // Remove item completely
+                removeCartItem(index);
+                return;
+            }
         }
+
+        renderCart();
+        renderCatalog(getFilteredCatalog());
     }
 
-    function resetBill(needsConfirm = true) {
-        if (needsConfirm && currentBill.items.length > 0 && !appConfirm('Are you sure you want to clear the entire bill?')) {
+    function removeCartItem(index) {
+        const item = currentBill.items[index];
+        const product = activeProducts.find(p => p.id === item.productId);
+        if (product) {
+            product.quantity += item.quantity;
+        }
+        currentBill.items.splice(index, 1);
+        renderCart();
+        renderCatalog(getFilteredCatalog());
+    }
+
+    function resetBill(skipConfirm = false) {
+        if (!skipConfirm && currentBill.items.length > 0 && !confirm('Clear all items from current bill?')) {
             return;
         }
 
+        // Restore local stock counts
         currentBill.items.forEach(item => {
             const product = activeProducts.find(p => p.id === item.productId);
-            if (product) {
-                product.quantity += item.quantity;
-            }
+            if (product) product.quantity += item.quantity;
         });
 
         currentBill = { items: [], totalAmount: 0.0 };
-        renderBillItems();
-        renderActiveProducts();
+        renderCart();
+        renderCatalog(getFilteredCatalog());
     }
 
-    function handleFinalizeSale() {
+    // Render Cart HTML
+    function renderCart() {
+        const container = document.getElementById('cartItemsList');
+        const itemCount = document.getElementById('cartItemCount');
+        const subtotalEl = document.getElementById('billSubtotal');
+        const totalEl = document.getElementById('billTotal');
+        const finalizeBtn = document.getElementById('finalizeSaleBtn');
+
+        const totalQty = currentBill.items.reduce((sum, item) => sum + item.quantity, 0);
+        currentBill.totalAmount = currentBill.items.reduce((sum, item) => sum + item.subtotal, 0);
+
+        itemCount.textContent = `${totalQty} unit(s) • ${currentBill.items.length} item(s)`;
+        subtotalEl.textContent = `₹${currentBill.totalAmount.toFixed(2)}`;
+        totalEl.textContent = `₹${currentBill.totalAmount.toFixed(2)}`;
+
+        finalizeBtn.disabled = currentBill.items.length === 0;
+
         if (currentBill.items.length === 0) {
-            showToast('The bill is empty. Add products before finalizing.', 'error');
+            container.innerHTML = `
+                <div class="h-full py-16 text-center text-slate-300 flex flex-col items-center justify-center">
+                    <i class="fa-solid fa-cart-shopping text-4xl mb-3 text-slate-200"></i>
+                    <p class="text-sm font-semibold text-slate-600">The bill is currently empty</p>
+                    <p class="text-xs text-slate-400 mt-0.5">Click an item from the left or scan product ID</p>
+                </div>`;
             return;
         }
 
-        if (!appConfirm(`Finalize sale for total: ₹${currentBill.totalAmount.toFixed(2)}?`)) {
+        container.innerHTML = currentBill.items.map((item, index) => `
+            <div class="p-3 bg-slate-50 hover:bg-slate-100/70 border border-slate-200/80 rounded-xl transition flex items-center justify-between gap-3">
+                <div class="flex-grow min-w-0">
+                    <h4 class="font-bold text-xs text-slate-800 truncate">${escapeHtml(item.productName)}</h4>
+                    <p class="text-[11px] text-slate-400">₹${item.price.toFixed(2)} each</p>
+                </div>
+
+                <!-- Quantity Increment / Decrement -->
+                <div class="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg p-0.5 shadow-2xs">
+                    <button type="button" onclick="updateCartItemQty(${index}, -1)" class="w-6 h-6 flex items-center justify-center rounded text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition">
+                        <i class="fa-solid fa-minus text-[9px]"></i>
+                    </button>
+                    <span class="w-6 text-center font-bold text-xs text-slate-800">${item.quantity}</span>
+                    <button type="button" onclick="updateCartItemQty(${index}, 1)" class="w-6 h-6 flex items-center justify-center rounded text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition">
+                        <i class="fa-solid fa-plus text-[9px]"></i>
+                    </button>
+                </div>
+
+                <div class="text-right whitespace-nowrap min-w-[70px]">
+                    <span class="font-black text-xs text-slate-900 block">₹${item.subtotal.toFixed(2)}</span>
+                    <button type="button" onclick="removeCartItem(${index})" class="text-[10px] text-rose-500 hover:text-rose-700 transition">
+                        Remove
+                    </button>
+                </div>
+            </div>`).join('');
+    }
+
+    // Checkout: Finalize Sale
+    async function handleFinalizeSale() {
+        if (currentBill.items.length === 0) {
+            showToast('The bill is empty.', 'error');
             return;
         }
+
+        const btn = document.getElementById('finalizeSaleBtn');
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Processing Transaction...`;
 
         const finalBillDto = {
             totalAmount: currentBill.totalAmount,
             items: currentBill.items.map(item => ({
-                productId: item.productId, quantity: item.quantity, price: item.price, subtotal: item.subtotal
+                productId: item.productId,
+                quantity: item.quantity,
+                price: item.price,
+                subtotal: item.subtotal
             }))
         };
 
-        finalizeSale(finalBillDto);
+        try {
+            const response = await fetch(`${API_BASE_URL}/bills`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(finalBillDto)
+            });
+
+            if (response.status === 201) {
+                const data = await response.json();
+                showToast(`Sale finalized! Bill #${data.billId} created.`, 'success');
+
+                // Populate and show printable receipt
+                showReceiptModal(data, currentBill.items);
+
+                // Reset cart state
+                currentBill = { items: [], totalAmount: 0.0 };
+                renderCart();
+                fetchActiveProducts(); // refresh live stock from DB
+
+            } else if (response.status === 400) {
+                const errorText = await response.text();
+                showToast(`Sale failed: ${errorText || 'Insufficient stock.'}`, 'error', 4500);
+            } else {
+                showToast(`Sale failed with status ${response.status}.`, 'error');
+            }
+        } catch (error) {
+            console.error(error);
+            showToast('Network error during checkout.', 'error');
+        } finally {
+            btn.disabled = currentBill.items.length === 0;
+            btn.innerHTML = `<i class="fa-solid fa-circle-check"></i><span>Finalize Sale & Print Bill</span>`;
+        }
     }
 
-    // --- UTILITIES ---
+    // Receipt Modal Logic
+    function showReceiptModal(billHeader, items) {
+        document.getElementById('receiptBillId').textContent = `#${billHeader.billId || 'INV-001'}`;
+        document.getElementById('receiptDate').textContent = new Date().toLocaleString('en-IN', {
+            dateStyle: 'short', timeStyle: 'short'
+        });
+        document.getElementById('receiptTotal').textContent = `₹${billHeader.totalAmount.toFixed(2)}`;
 
-    function showToast(message, type = 'info', duration = 3000) {
-        const toastContainer = document.getElementById('toastContainer');
-        const colorMap = { 'success': 'bg-green-500', 'error': 'bg-red-500', 'info': 'bg-blue-500' };
+        const tbody = document.getElementById('receiptItemsBody');
+        tbody.innerHTML = items.map(item => `
+            <tr class="py-1">
+                <td class="py-1">${escapeHtml(item.productName)}</td>
+                <td class="py-1 text-center">${item.quantity}</td>
+                <td class="py-1 text-right">₹${item.price.toFixed(2)}</td>
+                <td class="py-1 text-right font-bold">₹${item.subtotal.toFixed(2)}</td>
+            </tr>
+        `).join('');
+
+        const modal = document.getElementById('receiptModal');
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            modal.classList.remove('opacity-0');
+            modal.querySelector('div').classList.remove('scale-95');
+            modal.querySelector('div').classList.add('scale-100');
+        }, 10);
+    }
+
+    function closeReceiptModal() {
+        const modal = document.getElementById('receiptModal');
+        modal.classList.add('opacity-0');
+        modal.querySelector('div').classList.add('scale-95');
+        modal.querySelector('div').classList.remove('scale-100');
+        setTimeout(() => modal.classList.add('hidden'), 200);
+    }
+
+    function printReceipt() {
+        const receiptContent = document.getElementById('printableReceipt');
+        if (!receiptContent) {
+            window.print();
+            return;
+        }
+
+        // Clean up any previously attached print iframe
+        const oldFrame = document.getElementById('printReceiptIframe');
+        if (oldFrame) oldFrame.remove();
+
+        // Create an isolated printing iframe
+        const iframe = document.createElement('iframe');
+        iframe.id = 'printReceiptIframe';
+        iframe.style.position = 'fixed';
+        iframe.style.top = '-10000px';
+        iframe.style.left = '-10000px';
+        iframe.style.width = '80mm';
+        iframe.style.height = '100mm';
+        iframe.style.border = 'none';
+        document.body.appendChild(iframe);
+
+        const doc = iframe.contentWindow.document;
+        doc.open();
+        doc.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>Receipt - StockFlow IMS</title>
+                <style>
+                    @page {
+                        size: 80mm auto;
+                        margin: 4mm;
+                    }
+                    body {
+                        font-family: 'Courier New', Courier, monospace;
+                        font-size: 11px;
+                        line-height: 1.35;
+                        color: #000;
+                        background: #fff;
+                        margin: 0;
+                        padding: 8px;
+                    }
+                    * {
+                        box-sizing: border-box;
+                        color: #000 !important;
+                    }
+                    .text-center { text-align: center; }
+                    .text-right { text-align: right; }
+                    .font-bold { font-weight: bold; }
+                    .uppercase { text-transform: uppercase; }
+                    .tracking-wider { letter-spacing: 0.05em; }
+                    .border-b { border-bottom: 1px dashed #333; }
+                    .border-t { border-top: 1px dashed #333; }
+                    .border-dashed { border-style: dashed; }
+                    .border-dotted { border-style: dotted; }
+                    .pb-4 { padding-bottom: 10px; }
+                    .pt-2 { padding-top: 5px; }
+                    .pt-3 { padding-top: 8px; }
+                    .mt-2 { margin-top: 6px; }
+                    .py-1 { padding-top: 3px; padding-bottom: 3px; }
+                    .space-y-4 > * + * { margin-top: 10px; }
+                    .space-y-1 > * + * { margin-top: 4px; }
+                    .flex { display: flex; }
+                    .justify-between { justify-content: space-between; }
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin: 6px 0;
+                    }
+                    th {
+                        border-bottom: 1px dashed #333;
+                        padding: 4px 2px;
+                        font-size: 10px;
+                        font-weight: bold;
+                    }
+                    td {
+                        padding: 3px 2px;
+                        font-size: 10px;
+                        border-bottom: 1px dotted #bbb;
+                    }
+                </style>
+            </head>
+            <body>
+                ${receiptContent.innerHTML}
+            </body>
+            </html>
+        `);
+        doc.close();
+
+        setTimeout(() => {
+            iframe.contentWindow.focus();
+            iframe.contentWindow.print();
+        }, 200);
+    }
+
+    // Toast Utility
+    function showToast(message, type = 'info', duration = 3500) {
+        const container = document.getElementById('toastContainer');
         const toast = document.createElement('div');
-        toast.className = `${colorMap[type]} text-white px-4 py-2 rounded-lg shadow-xl transition-opacity duration-300 opacity-0 max-w-xs`;
-        toast.textContent = message;
-        toastContainer.appendChild(toast);
-        setTimeout(() => toast.classList.remove('opacity-0'), 10);
-        setTimeout(() => { toast.classList.add('opacity-0'); toast.addEventListener('transitionend', () => toast.remove()); }, duration);
+
+        const icons = {
+            success: 'fa-circle-check text-emerald-500',
+            error: 'fa-circle-xmark text-rose-500',
+            info: 'fa-circle-info text-pos-600'
+        };
+
+        toast.className = `flex items-center gap-2.5 px-4 py-3 bg-white border border-slate-200 rounded-xl shadow-xl text-xs font-semibold text-slate-800 transition-all duration-300 transform translate-y-3 opacity-0`;
+        toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.info} text-base"></i><span>${escapeHtml(message)}</span>`;
+
+        container.appendChild(toast);
+        setTimeout(() => toast.classList.remove('translate-y-3', 'opacity-0'), 10);
+        setTimeout(() => {
+            toast.classList.add('translate-y-3', 'opacity-0');
+            setTimeout(() => toast.remove(), 300);
+        }, duration);
     }
 
-    function appConfirm(message) {
-        return window.confirm(message);
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
+
+    // Close drawer when clicking outside
+    document.addEventListener('click', (event) => {
+        const drawer = document.getElementById('notificationDrawer');
+        const notifBtn = document.getElementById('notificationBtn');
+        if (drawer.classList.contains('open') && !drawer.contains(event.target) && !notifBtn.contains(event.target)) {
+            drawer.classList.remove('open');
+        }
+    });
+
+    // Keyboard Shortcuts (e.g. F2 to Checkout, Esc to close modals)
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'F2') {
+            e.preventDefault();
+            handleFinalizeSale();
+        } else if (e.key === 'Escape') {
+            closeReceiptModal();
+        }
+    });
 
     document.addEventListener('DOMContentLoaded', () => {
         fetchActiveProducts();
-        document.getElementById('productInputForm').addEventListener('submit', handleAddItemToBill);
-        document.getElementById('billItemsTableBody').addEventListener('click', handleRemoveItem);
-        document.getElementById('finalizeSaleBtn').addEventListener('click', handleFinalizeSale);
-        document.getElementById('resetBillBtn').addEventListener('click', resetBill);
-        // Add a click listener to close the drawer if user clicks outside of it
-        document.addEventListener('click', (event) => {
-            const drawer = document.getElementById('notificationDrawer');
-            const bellButton = document.querySelector('.relative > button');
-            if (drawer.classList.contains('open') && !drawer.contains(event.target) && !bellButton.contains(event.target)) {
-                drawer.classList.remove('open');
-            }
-        });
+        document.getElementById('productInputForm').addEventListener('submit', handleManualAdd);
     });
 </script>
 </body>

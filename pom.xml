@@ -74,6 +74,12 @@
       <artifactId>lombok</artifactId>
       <optional>true</optional>
     </dependency>
+
+    <!-- 5. SPRING BOOT MAIL: For automated low-stock email alerts -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-mail</artifactId>
+    </dependency>
   </dependencies>
 
   <!-- ADDED: Repositories configuration to help Maven find the parent POM -->

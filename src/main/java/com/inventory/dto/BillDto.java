@@ -25,4 +25,16 @@ public class BillDto implements Serializable {
      * This is crucial for receiving data from the frontend.
      */
     private List<BillItemDto> items;
+
+    public Integer getBillId() { return billId; }
+    public void setBillId(Integer billId) { this.billId = billId; }
+
+    public Double getTotalAmount() { return totalAmount; }
+    public void setTotalAmount(Double totalAmount) { this.totalAmount = totalAmount; }
+
+    public String getBillDate() { return billDate; }
+    public void setBillDate(String billDate) { this.billDate = billDate; }
+
+    public List<BillItemDto> getItems() { return items; }
+    public void setItems(List<BillItemDto> items) { this.items = items; }
 }

@@ -16,10 +16,13 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/cashier")
-@RequiredArgsConstructor
 public class CashierController {
 
     private final CashierService cashierService;
+
+    public CashierController(CashierService cashierService) {
+        this.cashierService = cashierService;
+    }
 
     /**
      * Endpoint to get the list of active products available for sale.
@@ -46,13 +49,13 @@ public class CashierController {
             // Returns 201 Created status
             return new ResponseEntity<>(completedBill, HttpStatus.CREATED);
         } catch (IllegalArgumentException | IllegalStateException e) {
-            // CRITICAL FIX: Catches validation errors (like insufficient stock) and returns 400 Bad Request,
-            // with the error message in the body so the frontend can display it.
+            // Catches validation errors (like insufficient stock) and returns 400 Bad Request
             System.err.println("Sale processing failed: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         } catch (RuntimeException e) {
             // Catches general database errors
             System.err.println("Sale processing failed due to unexpected error: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

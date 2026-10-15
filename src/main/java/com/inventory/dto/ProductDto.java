@@ -37,7 +37,24 @@ public class ProductDto {
     private String name;
     private Double price;
     private Integer quantity;
-    // FIXED: Standardized field name to CamelCase for correct Lombok setter/getter generation
     private Integer minRequired;
     private Boolean isActive;
+
+    public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public Double getPrice() { return price; }
+    public void setPrice(Double price) { this.price = price; }
+
+    public Integer getQuantity() { return quantity; }
+    public void setQuantity(Integer quantity) { this.quantity = quantity; }
+
+    public Integer getMinRequired() { return minRequired; }
+    public void setMinRequired(Integer minRequired) { this.minRequired = minRequired; }
+
+    public Boolean getIsActive() { return isActive; }
+    public void setIsActive(Boolean isActive) { this.isActive = isActive; }
 }
