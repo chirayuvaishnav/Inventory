@@ -48,18 +48,18 @@ public class DBConnection {
             return DriverManager.getConnection(url);
         }
 
-        // 2. Resolve individual connection environment variables
-        String host = System.getenv("DB_HOST") != null ? System.getenv("DB_HOST").trim() : "localhost";
-        String port = System.getenv("DB_PORT") != null ? System.getenv("DB_PORT").trim() : "3306";
-        String dbName = System.getenv("DB_NAME") != null ? System.getenv("DB_NAME").trim() : "inventory_db";
-        String user = System.getenv("DB_USER") != null ? System.getenv("DB_USER").trim() : "root";
-        String password = System.getenv("DB_PASSWORD") != null ? System.getenv("DB_PASSWORD").trim() : "Chirayu@123";
+        // 2. Resolve individual connection environment variables (Defaults to Aiven MySQL)
+        String host = resolveConfig("DB_HOST", "mysql-25f61199-chirayu-2805.l.aivencloud.com");
+        String port = resolveConfig("DB_PORT", "16498");
+        String dbName = resolveConfig("DB_NAME", "defaultdb");
+        String user = resolveConfig("DB_USER", "avnadmin");
+        String password = resolveConfig("DB_PASSWORD", "");
 
         StringBuilder sb = new StringBuilder();
         sb.append("jdbc:mysql://").append(host).append(":").append(port).append("/").append(dbName);
 
         if (!host.equalsIgnoreCase("localhost") && !host.equals("127.0.0.1")) {
-            // Mandatory SSL for Cloud Providers (Aiven, TiDB, Render, etc.)
+            // Mandatory SSL for Cloud Providers (Aiven, Render, etc.)
             sb.append("?sslMode=PREFERRED&allowPublicKeyRetrieval=true");
         } else {
             // Local development
@@ -67,5 +67,32 @@ public class DBConnection {
         }
 
         return DriverManager.getConnection(sb.toString(), user, password);
+    }
+
+    private static String resolveConfig(String key, String defaultValue) {
+        String val = System.getenv(key);
+        if (val != null && !val.trim().isEmpty()) {
+            return val.trim();
+        }
+        val = System.getProperty(key);
+        if (val != null && !val.trim().isEmpty()) {
+            return val.trim();
+        }
+        try {
+            java.io.File envFile = new java.io.File(".env");
+            if (envFile.exists()) {
+                try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.FileReader(envFile))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        line = line.trim();
+                        if (line.startsWith(key + "=")) {
+                            return line.substring(key.length() + 1).trim();
+                        }
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        return defaultValue;
     }
 }

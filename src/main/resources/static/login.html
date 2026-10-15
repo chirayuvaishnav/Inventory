@@ -94,21 +94,6 @@
             </button>
         </div>
     </form>
-
-    <!-- Quick Fill Demo Credentials -->
-    <div class="mt-6 pt-5 border-t border-slate-100 text-center">
-        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2.5">Quick Demo Accounts</p>
-        <div class="flex items-center justify-center gap-2">
-            <button type="button" onclick="fillCredentials('admin', 'admin123')"
-                    class="px-3 py-1.5 text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition duration-150 cursor-pointer">
-                👤 Admin
-            </button>
-            <button type="button" onclick="fillCredentials('cashier1', 'cash123')"
-                    class="px-3 py-1.5 text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition duration-150 cursor-pointer">
-                🛒 Cashier
-            </button>
-        </div>
-    </div>
 </div>
 
 <!-- Toast Notification Container -->
@@ -116,11 +101,6 @@
 
 <script>
     const API_BASE_URL = '/api/auth/login';
-
-    function fillCredentials(user, pass) {
-        document.getElementById('username').value = user;
-        document.getElementById('password').value = pass;
-    }
 
     document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('loginForm').addEventListener('submit', handleLogin);

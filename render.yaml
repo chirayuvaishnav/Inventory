@@ -13,13 +13,13 @@ services:
       - key: SPRING_PROFILES_ACTIVE
         value: prod
       - key: DB_HOST
-        sync: false
+        value: mysql-25f61199-chirayu-2805.l.aivencloud.com
       - key: DB_PORT
-        value: "3306"
+        value: "16498"
       - key: DB_NAME
-        value: inventory_db
+        value: defaultdb
       - key: DB_USER
-        sync: false
+        value: avnadmin
       - key: DB_PASSWORD
         sync: false
       - key: MAIL_HOST
